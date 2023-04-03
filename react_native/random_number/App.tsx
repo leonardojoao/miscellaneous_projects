@@ -5,7 +5,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import {
   SafeAreaView,
@@ -25,6 +25,14 @@ function App(): JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const [number, setNumber] = useState(0);
+
+  const handleNumber = () => {
+    const new_number = Math.floor(Math.random() * 10);
+
+    setNumber(new_number);
+  };
+
   return (
     <SafeAreaView style={styles.sectionContainer}>
       <StatusBar
@@ -32,9 +40,9 @@ function App(): JSX.Element {
         backgroundColor={backgroundStyle.backgroundColor}
       />
 
-      <Text style={styles.numberRandom}>0</Text>
+      <Text style={styles.numberRandom}>{number}</Text>
 
-      <TouchableOpacity style={styles.buttonRandom}>
+      <TouchableOpacity style={styles.buttonRandom} onPress={handleNumber}>
         <Text style={styles.textButtonRandom}>Generate Number</Text>
       </TouchableOpacity>
     </SafeAreaView>
