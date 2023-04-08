@@ -15,6 +15,7 @@ import {
   useColorScheme,
   View,
   Image,
+  Text,
 } from 'react-native';
 
 import profile from './src/assets/profile.png';
@@ -42,6 +43,9 @@ function App(): JSX.Element {
           }}>
           <View style={styles.pictureContainer}>
             <Image style={styles.picture} source={profile} />
+
+            <Text style={styles.name}>Leonardo João</Text>
+            <Text style={styles.profession}>Desenvolvedor Front End</Text>
           </View>
         </View>
       </ScrollView>
@@ -53,12 +57,22 @@ const styles = StyleSheet.create({
   pictureContainer: {
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   picture: {
     width: 250,
     height: 250,
     borderRadius: 125,
     resizeMode: 'contain',
+  },
+  name: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  profession: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
