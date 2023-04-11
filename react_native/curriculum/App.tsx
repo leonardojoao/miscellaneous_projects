@@ -23,6 +23,7 @@ import {
 import Icon from 'react-native-vector-icons/Feather';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
+import Card from './src/components/Card/index';
 import profile from './src/assets/profile.png';
 
 function App(): JSX.Element {
@@ -74,33 +75,19 @@ function App(): JSX.Element {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.card_container}>
-              <View style={styles.card}>
-                <View style={styles.card_header}>
-                  <Text style={styles.card_header_text}>Professional Experience</Text>
-                </View>
+            <Card
+              title="Professional Experience"
+              experience_first="Developer Front End at Compass Uol"
+              experience_second="Developer Front End at OS Systems"
+              experience_third="Diretor de Produtor at Vantum"
+            />
 
-                <View style={styles.card_content}>
-                  <Text style={styles.card_content_text}>Developer Front End at Compass Uol</Text>
-                  <Text style={styles.card_content_text}>Developer Front End at OS Systems</Text>
-                  <Text style={styles.card_content_text}>Diretor de Produtor at Vantum</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.card_container}>
-              <View style={styles.card}>
-                <View style={styles.card_header}>
-                  <Text style={styles.card_header_text}>Education Experience</Text>
-                </View>
-
-                <View style={styles.card_content}>
-                  <Text style={styles.card_content_text}>Master Degree at UFPeL</Text>
-                  <Text style={styles.card_content_text}>Graduation at UFPeL</Text>
-                  <Text style={styles.card_content_text}>English at ---</Text>
-                </View>
-              </View>
-            </View>
+            <Card
+              title="Academic Education"
+              experience_first="Master Degree at UFPeL"
+              experience_second="Graduation at UFPeL"
+              experience_third="English at ---"
+            />
           </View>
         </View>
       </ScrollView>
@@ -135,31 +122,6 @@ const styles = StyleSheet.create({
 
     marginTop: 20,
     width: '18%',
-  },
-  card_container: {
-    alignItems: 'center',
-    width: '100%',
-    marginTop: 30,
-  },
-  card: {
-    width: '65%',
-
-    padding: 10,
-    borderRadius: 5,
-    backgroundColor: '#F8F8FF',
-  },
-  card_header: {
-    marginTop: 0,
-  },
-  card_header_text: {
-    fontWeight: 'bold',
-  },
-  card_content: {
-    marginTop: 20,
-  },
-  card_content_text: {
-    color: '#939393',
-    marginBottom: 10,
   },
 });
 
