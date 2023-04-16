@@ -38,6 +38,8 @@ body {
   display: flex;
   justify-content: space-evenly;
   position: relative;
+
+  filter: url('#goo');
 }
 
 .nav li a {
@@ -85,4 +87,8 @@ body {
   position: absolute;
   top: -35px;
   left: calc(50vw - 45px);
+}
+
+#filter-svg {
+  display: none;
 }
