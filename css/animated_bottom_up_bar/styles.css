@@ -2,6 +2,7 @@
   --bg-body: #fff;
   --bg-nav: #008B8B;
   --color-nav: #fff;
+  --color-nav-hover: #fff;
   --color-nav-active: #7FFFD4;
 }
 
@@ -55,4 +56,33 @@ body {
 .nav li a .title {
   display: none;
   font-size: 16px;
+}
+
+.nav li a:hover {
+  color: var(--color-nav-hover);
+}
+
+.nav li a.nav-item-active {
+  color: var(--color-nav-active);
+  transform: translateY(-20%);
+  font-size: 45px;
+  transition: transform .5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.nav li a.nav-item-active .title {
+  display: block;
+  font-size: 16px;
+}
+
+.nav .nav-indicator {
+  width: 90px;
+  height: 90px;
+
+  border-radius: 50%;
+  background-color: var(--bg-nav);
+  transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  position: absolute;
+  top: -35px;
+  left: calc(50vw - 45px);
 }
