@@ -1,11 +1,7 @@
 import React, {useState} from 'react';
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import {SafeAreaView, View, Text, TextInput} from 'react-native';
+
+import Button from './components/Button/Button';
 
 import Styles from './Styles';
 
@@ -30,12 +26,7 @@ function Home(): JSX.Element {
         onChangeText={setNewSkill}
       />
 
-      <TouchableOpacity
-        style={Styles.button}
-        activeOpacity={0.7}
-        onPress={handleAddNewSkill}>
-        <Text style={Styles.buttonText}>Add</Text>
-      </TouchableOpacity>
+      <Button onPress={handleAddNewSkill} />
     </SafeAreaView>
   );
 }
