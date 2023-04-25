@@ -6,13 +6,23 @@ import SkillCard from './components/SkillCard/SkillCard';
 
 import Styles from './Styles';
 
+interface SkillData {
+  id: string;
+  name: string;
+}
+
 function Home(): JSX.Element {
   const [newSkill, setNewSkill] = useState('');
-  const [skills, setSkill] = useState<string[]>([]);
+  const [skills, setSkill] = useState<SkillData[]>([]);
   const [gretting, setGretting] = useState('');
 
   function handleAddNewSkill() {
-    setSkill(oldState => [...oldState, newSkill]);
+    const data = {
+      id: String(new Date().getTime()),
+      name: newSkill,
+    };
+
+    setSkill(oldState => [...oldState, data]);
   }
 
   useEffect(() => {
@@ -47,8 +57,8 @@ function Home(): JSX.Element {
 
       <FlatList
         data={skills}
-        keyExtractor={(_item, index) => index.toString()}
-        renderItem={({item, index}) => <SkillCard key={index} skill={item} />}
+        keyExtractor={item => item.id}
+        renderItem={({item}) => <SkillCard skill={item.name} />}
       />
     </SafeAreaView>
   );
