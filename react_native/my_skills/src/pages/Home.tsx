@@ -1,13 +1,14 @@
 import React, {useState} from 'react';
-import {SafeAreaView, View, Text, TextInput} from 'react-native';
+import {SafeAreaView, View, Text, TextInput, ScrollView} from 'react-native';
 
 import Button from './components/Button/Button';
+import SkillCard from './components/SkillCard/SkillCard';
 
 import Styles from './Styles';
 
 function Home(): JSX.Element {
   const [newSkill, setNewSkill] = useState('');
-  const [, setSkill] = useState<string[]>([]);
+  const [skills, setSkill] = useState<string[]>([]);
 
   function handleAddNewSkill() {
     setSkill(oldState => [...oldState, newSkill]);
@@ -27,6 +28,14 @@ function Home(): JSX.Element {
       />
 
       <Button onPress={handleAddNewSkill} />
+
+      <Text style={[Styles.title, {marginVertical: 40}]}>My Skills</Text>
+
+      <ScrollView>
+        {skills.map((value, key) => (
+          <SkillCard key={key} skill={value} />
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 }
