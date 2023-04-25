@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {SafeAreaView, View, Text, TextInput, ScrollView} from 'react-native';
+import {SafeAreaView, View, Text, TextInput, FlatList} from 'react-native';
 
 import Button from './components/Button/Button';
 import SkillCard from './components/SkillCard/SkillCard';
@@ -31,11 +31,11 @@ function Home(): JSX.Element {
 
       <Text style={[Styles.title, {marginVertical: 40}]}>My Skills</Text>
 
-      <ScrollView>
-        {skills.map((value, key) => (
-          <SkillCard key={key} skill={value} />
-        ))}
-      </ScrollView>
+      <FlatList
+        data={skills}
+        keyExtractor={(_item, index) => index.toString()}
+        renderItem={({item, index}) => <SkillCard key={index} skill={item} />}
+      />
     </SafeAreaView>
   );
 }
