@@ -1,16 +1,15 @@
 import React from 'react';
-import {Text, TouchableOpacity} from 'react-native';
+import {Text, TouchableOpacity, TouchableOpacityProps} from 'react-native';
 
 import Styles from './Styles';
 
-interface card {
-  key: number;
+interface SkillCardProps extends TouchableOpacityProps {
   skill: string;
 }
 
-function SkillCard({key, skill}: card): JSX.Element {
+function SkillCard({skill, ...rest}: SkillCardProps): JSX.Element {
   return (
-    <TouchableOpacity key={key} style={Styles.buttonSkill}>
+    <TouchableOpacity style={Styles.buttonSkill} {...rest}>
       <Text style={Styles.textSkill}>{skill}</Text>
     </TouchableOpacity>
   );
