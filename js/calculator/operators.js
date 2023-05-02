@@ -1,3 +1,3 @@
-const sum = (a, b) => (a + b);
+export const sum = (a, b) => (a + b);
 
-export default sum;
+export const sub = (a, b) => (a - b);
