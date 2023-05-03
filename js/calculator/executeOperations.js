@@ -11,11 +11,8 @@ import printMessage from './print.js';
 const prompt = promptSync();
 
 const executeOperation = (operation) => {
-  printMessage('\nEnter the first value:');
-  const firstValue = Number(prompt(''));
-
-  printMessage('Enter the second value:');
-  const secondValue = Number(prompt(''));
+  const firstValue = Number(prompt('Enter the first value:'));
+  const secondValue = Number(prompt('Enter the second value:'));
 
   return operation(firstValue, secondValue);
 };
