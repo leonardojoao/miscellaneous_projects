@@ -5,7 +5,7 @@ import {Container, Title} from './styles';
 function Dashboard(): JSX.Element {
   return (
     <Container>
-      <Title>Dasboard</Title>
+      <Title>Dashboard</Title>
     </Container>
   );
 }
