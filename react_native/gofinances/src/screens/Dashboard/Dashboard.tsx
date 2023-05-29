@@ -1,11 +1,37 @@
 import React from 'react';
 
-import {Container, Title} from './styles';
+import {
+  Container,
+  Header,
+  UserWrapper,
+  UserInfo,
+  Photo,
+  User,
+  UserGreeting,
+  UserName,
+  IconMaterialCommunity,
+} from './styles';
 
 function Dashboard(): JSX.Element {
   return (
     <Container>
-      <Title>Dashboard</Title>
+      <Header>
+        <UserWrapper>
+          <UserInfo>
+            <Photo
+              source={{
+                uri: 'https://avatars.githubusercontent.com/u/15831786?v=4',
+              }}
+            />
+
+            <User>
+              <UserGreeting>Olá,</UserGreeting>
+              <UserName>Leonardo</UserName>
+            </User>
+          </UserInfo>
+          <IconMaterialCommunity name="power" />
+        </UserWrapper>
+      </Header>
     </Container>
   );
 }
