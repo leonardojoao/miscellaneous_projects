@@ -1,8 +1,11 @@
-import { Category } from 'model/Category';
-import { ICategoriesRepository, ICreateCategoryDTO } from './ICategoriesRepository';
+import { Category } from 'modules/cars/model/Category';
+import {
+  ICategoriesRepository,
+  ICreateCategoryDTO,
+} from './ICategoriesRepository';
 
 class PostgresCategoriesRepository implements ICategoriesRepository {
-  create({ name, description}: ICreateCategoryDTO): void {
+  create({ name, description }: ICreateCategoryDTO): void {
     console.log(name, description);
     throw new Error('Method not implemented.');
   }
