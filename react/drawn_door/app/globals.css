@@ -105,3 +105,8 @@ a {
     color-scheme: dark;
   }
 }
+
+:root {
+  --area-door-height:  310px;
+  --area-door-width: 200px;
+}

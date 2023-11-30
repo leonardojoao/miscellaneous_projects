@@ -1,4 +1,4 @@
-import styles from '@/styles/Gift.module.css'
+import styles from "@/styles/Gift.module.css";
 
 export default function Gift() {
   return (
@@ -8,5 +8,5 @@ export default function Gift() {
       <div className={styles.bow_left}></div>
       <div className={styles.bow_right}></div>
     </div>
-  )
+  );
 }
