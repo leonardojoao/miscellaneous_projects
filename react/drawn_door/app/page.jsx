@@ -1,10 +1,21 @@
-import Image from 'next/image'
+
+"use client"
+// import Image from 'next/image'
 import styles from './page.module.css'
+// import Gift from '@/components/Gift'
+import Door from '../components/Door'
+import DoorModel from '../model/door'
+import { React, useState } from 'react'
 
 export default function Home() {
+  const [door_1, setDoor_1] = useState(new DoorModel(1))
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
+    <main className={styles.main} style={{ display: 'flex', flexDirection: 'row' }}>
+      <Door value={door_1} onChange={newDoor => setDoor_1(newDoor)} />
+      {/* <Door door={p2} /> */}
+      {/* <Gift /> */}
+      {/* <div className={styles.description}>
         <p>
           Get started by editing&nbsp;
           <code className={styles.code}>app/page.js</code>
@@ -89,7 +100,7 @@ export default function Home() {
             Instantly deploy your Next.js site to a shareable URL with Vercel.
           </p>
         </a>
-      </div>
+      </div> */}
     </main>
   )
 }
