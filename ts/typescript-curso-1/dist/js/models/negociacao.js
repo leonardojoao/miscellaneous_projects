@@ -11,7 +11,3 @@ export class Negociacao {
         return this._quantidade * this._valor;
     }
 }
-//   get data() {
-//     const data = new Date(this._data.getTime());
-//     return data;
-//   }
