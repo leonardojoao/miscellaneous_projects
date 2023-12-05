@@ -2,10 +2,10 @@ export class Negociacoes {
     constructor() {
         this.negociacoes = [];
     }
-    adiciona(negociacao) {
+    adicionar(negociacao) {
         this.negociacoes.push(negociacao);
     }
-    lista() {
-        return this.negociacoes;
+    listar() {
+        return [...this.negociacoes];
     }
 }
