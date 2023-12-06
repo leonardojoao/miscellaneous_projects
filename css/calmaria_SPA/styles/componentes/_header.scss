@@ -1,0 +1,84 @@
+@use "./../abstract/var";
+
+header {
+  background: var.$gradiente-primario;
+  padding: 2rem;
+
+  nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.6rem;
+
+    .linha {
+      border-top: 1px solid black;
+      width: 80%;
+    }
+
+    ul {
+      display: inline-flex;
+      gap: 2rem;
+
+      li {
+        list-style: none;
+      }
+
+      a {
+        text-decoration: none;
+        color: var.$cor-primaria;
+        font-weight: 500;
+        font-family: var.$ft-textos;
+      }
+    }
+  }
+
+  #home {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    max-width: 1040px;
+    width: 80%;
+    margin: 0 auto;
+
+    .textos-home {
+      max-width: 464px;
+
+      h1 {
+        font-size: 42px;
+        color: var.$cor-primaria;
+        margin-bottom: 2rem;
+        font-family: var.$ft-titulos;
+
+        span {
+          color: var.$cor-sedundaria;
+        }
+      }
+
+      .btn-main {
+        width: 280px;
+        height: 66px;
+        padding: 24px;
+        gap: 10px;
+
+        border: none;
+        border-radius: 40px;
+        background-color: var.$cor-sedundaria;
+
+        font-family: var.$ft-textos;
+        font-weight: 600;
+        font-size: 22px;
+        line-height: 18px;
+        color: #ffffff;
+      }
+    }
+
+    .img-home {
+      max-width: 474px;
+
+      img {
+        width: 100%;
+      }
+    }
+  }
+}
