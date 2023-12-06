@@ -28,6 +28,10 @@ header {
         text-decoration: none;
         @include mixins.ff-fs-cl(var.$ft-textos, 1rem, var.$cor-primaria);
         font-weight: 500;
+
+        &:hover {
+          font-weight: bold;
+        }
       }
     }
   }
@@ -45,10 +49,7 @@ header {
 
       h1 {
         @include mixins.ff-fs-cl(var.$ft-titulos, 42px, var.$cor-primaria);
-        // font-size: 42px;
-        // color: var.$cor-primaria;
         margin-bottom: 2rem;
-        // font-family: var.$ft-titulos;
 
         span {
           color: var.$cor-sedundaria;
@@ -68,6 +69,10 @@ header {
         @include mixins.ff-fs-cl(var.$ft-textos, 22px, #ffffff);
         font-weight: 600;
         line-height: 18px;
+
+        &:hover {
+          opacity: 0.5;
+        }
       }
     }
 
