@@ -36,8 +36,8 @@ header #home {
   align-items: center;
   justify-content: space-between;
   max-width: 1040px;
-  width: 80%;
   margin: 0 auto;
+  width: 80%;
 }
 header #home .textos-home {
   max-width: 464px;

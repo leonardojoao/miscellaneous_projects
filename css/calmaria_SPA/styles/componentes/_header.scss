@@ -1,4 +1,5 @@
 @use "./../abstract/var";
+@use "./../abstract/mixins";
 
 header {
   background: var.$gradiente-primario;
@@ -38,8 +39,7 @@ header {
     justify-content: space-between;
 
     max-width: 1040px;
-    width: 80%;
-    margin: 0 auto;
+    @include mixins.margen-central(80%);
 
     .textos-home {
       max-width: 464px;
