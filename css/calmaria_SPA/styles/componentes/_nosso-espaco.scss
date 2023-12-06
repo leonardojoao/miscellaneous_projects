@@ -1,5 +1,43 @@
+@use "../abstract/var";
 @use "../abstract/mixins";
 
 #nosso-espaco {
   @include mixins.margen-central(80%);
+
+  .detalhes {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-around;
+
+    gap: 2rem;
+    padding: 2rem 0;
+
+    .imgs-espaco {
+      max-width: 500px;
+    }
+
+    .espaco-textos {
+      @extend .imgs-espaco;
+
+      .titulo {
+        @include mixins.ff-fs-cl(var.$ft-titulos, 1.8rem, var.$cor-sedundaria);
+        font-weight: 400;
+      }
+
+      .infos {
+        @include mixins.ff-fs-cl(var.$ft-textos, 1rem, var.$cor-primaria);
+        font-weight: 400;
+        line-height: 25px;
+      }
+
+      .separador {
+        width: 100%;
+      }
+    }
+
+    &:nth-child(2) {
+      flex-direction: row-reverse;
+    }
+  }
 }
