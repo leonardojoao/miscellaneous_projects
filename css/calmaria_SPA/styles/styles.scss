@@ -1,18 +1,4 @@
-$cor-primaria: #0c0421;
-$cor-sedundaria: #4e75ff;
-$cor-tercearia: #85a0ff;
-$cor-quartenaria: #e8f5c8;
-$cor-default: #cad4fa;
-
-$gradiente-primario: linear-gradient(180deg, #e8f5c8 0%, #ffffff 96.87%);
-$gradiente-secundario: linear-gradient(
-  180deg,
-  rgba(255, 255, 255, 0.7) 0%,
-  rgba(202, 212, 250, 0.3) 100%
-);
-
-$ft-titulos: "Krona One", sans-serif;
-$ft-textos: "Montserrat", sans-serif;
+@use './abstract/var';
 
 body {
   margin: 0;
@@ -21,7 +7,7 @@ body {
 }
 
 header {
-  background: $gradiente-primario;
+  background: var.$gradiente-primario;
   padding: 2rem;
 
   nav {
@@ -45,9 +31,9 @@ header {
 
       a {
         text-decoration: none;
-        color: $cor-primaria;
+        color: var.$cor-primaria;
         font-weight: 500;
-        font-family: $ft-textos;
+        font-family: var.$ft-textos;
       }
     }
   }
@@ -66,12 +52,12 @@ header {
 
       h1 {
         font-size: 42px;
-        color: $cor-primaria;
+        color: var.$cor-primaria;
         margin-bottom: 2rem;
-        font-family: $ft-titulos;
+        font-family: var.$ft-titulos;
 
         span {
-          color: $cor-sedundaria;
+          color: var.$cor-sedundaria;
         }
       }
 
@@ -83,9 +69,9 @@ header {
 
         border: none;
         border-radius: 40px;
-        background-color: $cor-sedundaria;
+        background-color: var.$cor-sedundaria;
 
-        font-family: $ft-textos;
+        font-family: var.$ft-textos;
         font-weight: 600;
         font-size: 22px;
         line-height: 18px;
