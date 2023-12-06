@@ -30,4 +30,44 @@ header nav ul a {
   color: #0c0421;
   font-weight: 500;
   font-family: "Montserrat", sans-serif;
+}
+header #home {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1040px;
+  width: 80%;
+  margin: 0 auto;
+}
+header #home .textos-home {
+  max-width: 464px;
+}
+header #home .textos-home h1 {
+  font-size: 42px;
+  color: #0c0421;
+  margin-bottom: 2rem;
+  font-family: "Krona One", sans-serif;
+}
+header #home .textos-home h1 span {
+  color: #4e75ff;
+}
+header #home .textos-home .btn-main {
+  width: 280px;
+  height: 66px;
+  padding: 24px;
+  gap: 10px;
+  border: none;
+  border-radius: 40px;
+  background-color: #4e75ff;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 18px;
+  color: #ffffff;
+}
+header #home .img-home {
+  max-width: 474px;
+}
+header #home .img-home img {
+  width: 100%;
 }/*# sourceMappingURL=styles.css.map */
