@@ -26,9 +26,8 @@ header {
 
       a {
         text-decoration: none;
-        color: var.$cor-primaria;
+        @include mixins.ff-fs-cl(var.$ft-textos, 1rem, var.$cor-primaria);
         font-weight: 500;
-        font-family: var.$ft-textos;
       }
     }
   }
@@ -45,10 +44,11 @@ header {
       max-width: 464px;
 
       h1 {
-        font-size: 42px;
-        color: var.$cor-primaria;
+        @include mixins.ff-fs-cl(var.$ft-titulos, 42px, var.$cor-primaria);
+        // font-size: 42px;
+        // color: var.$cor-primaria;
         margin-bottom: 2rem;
-        font-family: var.$ft-titulos;
+        // font-family: var.$ft-titulos;
 
         span {
           color: var.$cor-sedundaria;
@@ -65,11 +65,9 @@ header {
         border-radius: 40px;
         background-color: var.$cor-sedundaria;
 
-        font-family: var.$ft-textos;
+        @include mixins.ff-fs-cl(var.$ft-textos, 22px, #ffffff);
         font-weight: 600;
-        font-size: 22px;
         line-height: 18px;
-        color: #ffffff;
       }
     }
 
