@@ -262,4 +262,19 @@ header #home .img-home img {
 }
 #contatos .contatos-form .inputs .btn:hover {
   background: #4e75ff;
+}
+
+footer {
+  background: #e8f5c8;
+  margin-top: 4rem;
+  gap: 40px;
+  height: 71px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+footer small {
+  font-family: "Montserrat", sans-serif;
+  font-size: 0.9rem;
+  color: #0c0421;
 }/*# sourceMappingURL=styles.css.map */
