@@ -1,0 +1,18 @@
+@use "../abstract/var";
+@use "../abstract/mixins";
+
+footer {
+  background: #e8f5c8;
+  margin-top: 4rem;
+
+  gap: 40px;
+  height: 71px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  small {
+    @include mixins.ff-fs-cl(var.$ft-textos, 0.9rem, var.$cor-primaria);
+  }
+}
