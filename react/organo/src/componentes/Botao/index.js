@@ -1,9 +1,7 @@
-import './botao.css'
+import "./botao.css";
 
-const Botao = ({texto}) => {
-    return <button className="botao">
-        {texto}
-    </button>
-}
+const Botao = ({ texto }) => {
+  return <button className="botao">{texto}</button>;
+};
 
-export default Botao
+export default Botao;
