@@ -1,4 +1,5 @@
 import React from "react";
+import { v4 as uuidV4 } from "uuid";
 
 import Button from "../Button";
 import { ITask } from "../../types/ITask";
@@ -21,6 +22,7 @@ class Form extends React.Component<{
       ...oldTasks,
       {
         ...this.state,
+        id: uuidV4(),
       },
     ]);
 
