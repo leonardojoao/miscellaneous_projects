@@ -1,10 +1,6 @@
 import { Item } from "./Item";
+import { ITask } from "../../types/ITask";
 import style from "./List.module.scss";
-
-interface ITask {
-  name: string;
-  time: string;
-}
 
 export function List({ tasks }: { tasks: ITask[] }) {
   return (

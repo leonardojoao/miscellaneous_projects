@@ -1,12 +1,8 @@
 import React from "react";
 
 import Button from "../Button";
+import { ITask } from "../../types/ITask";
 import style from "./Form.module.scss";
-
-interface ITask {
-  name: string;
-  time: string;
-}
 
 class Form extends React.Component<{
   setTasks: React.Dispatch<React.SetStateAction<ITask[]>>;
@@ -14,6 +10,9 @@ class Form extends React.Component<{
   state = {
     name: "",
     time: "00:00",
+    selected: false,
+    completed: false,
+    id: "",
   };
 
   addTask(e: React.FormEvent<HTMLFormElement>) {
@@ -21,14 +20,16 @@ class Form extends React.Component<{
     this.props.setTasks((oldTasks) => [
       ...oldTasks,
       {
-        name: this.state.name,
-        time: this.state.time,
+        ...this.state,
       },
     ]);
 
     this.setState({
       name: "",
       time: "00:00",
+      selected: false,
+      completed: false,
+      id: "",
     });
   }
   render() {
