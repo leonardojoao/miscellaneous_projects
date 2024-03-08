@@ -3,12 +3,8 @@ import { useState } from "react";
 import Form from "../Form";
 import { List } from "../List";
 import { Stopwatch } from "../Stopwatch";
+import { ITask } from "../../types/ITask";
 import style from "./App.module.scss";
-
-interface ITask {
-  name: string;
-  time: string;
-}
 
 function App() {
   const [tasks, setTasks] = useState<ITask[]>([]);
