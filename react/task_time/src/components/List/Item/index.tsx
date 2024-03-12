@@ -19,10 +19,13 @@ export function Item({
       className={`${style.item} ${selected ? style.itemSelected : ""} ${
         completed ? style.itemFinished : ""
       }`}
-      onClick={() => selectTask({ name, time, selected, completed, id })}
+      onClick={() => !completed && selectTask({ name, time, selected, completed, id })}
     >
       <h3>{name}</h3>
       <span>{time}</span>
+      {completed && (
+        <span className={style.finished} aria-label="Task finished"></span>
+      )}
     </li>
   );
 }

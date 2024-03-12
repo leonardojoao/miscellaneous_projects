@@ -9,25 +9,36 @@ import { timeToSeconds } from "../../common/utils/time";
 
 interface Props {
   selected: ITask | undefined;
+  finishTask: () => void;
 }
 
-export function Stopwatch({ selected }: Props) {
-  const [time, setTime] = useState<Number>();
+export function Stopwatch({ selected, finishTask }: Props) {
+  const [time, setTime] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    if(selected?.time) {
+    if (selected?.time) {
       setTime(timeToSeconds(selected.time));
     }
-  }, [selected])
+  }, [selected]);
+
+  function regressive(counter: number = 0) {
+    setTimeout(() => {
+      if (counter > 0) {
+        setTime(counter - 1);
+        return regressive(counter - 1);
+      }
+      finishTask()
+      return;
+    }, 1000);
+  }
 
   return (
     <div className={style.stopwatch}>
       <p className={style.title}>Choose a card and start a timer</p>
-      Time: {time !== undefined ? time.toString() : ''}
       <div className={style.clockWrapper}>
-        <Clock />
+        <Clock time={time} />
       </div>
-      <Button name="Start" />
+      <Button name="Start" onClick={() => regressive(time)} />
     </div>
   );
 }
