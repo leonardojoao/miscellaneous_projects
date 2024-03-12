@@ -5,13 +5,14 @@ import style from "./Button.module.scss";
 export interface ButtonProps {
   name: string;
   type?: "button" | "submit" | "reset" | undefined;
+  onClick?: () => void;
 }
 
 class Button extends React.Component<ButtonProps> {
   render() {
-    const { type = "button" } = this.props;
+    const { type = "button", onClick } = this.props;
     return (
-      <button type={type} className={style.button}>
+      <button type={type} onClick={onClick} className={style.button}>
         {this.props.name}
       </button>
     );
