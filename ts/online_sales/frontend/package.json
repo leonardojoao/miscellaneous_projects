@@ -4,8 +4,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
+    "lint:format": "prettier --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\"",
+    "lint": "npm run lint:format && npm run lint:fix"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -25,8 +27,10 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "eslint-plugin-simple-import-sort": "^12.1.0",
+    "pre-commit": "^1.2.2",
     "prettier": "^3.2.5",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
-  }
+  },
+  "pre-commit": "lint"
 }
