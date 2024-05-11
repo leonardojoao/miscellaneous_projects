@@ -34,6 +34,7 @@ export const LimitedContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-direction: column;
 
   /* Devices with screen width less than 768px (mobile) */
   @media (max-width: 768px) {
