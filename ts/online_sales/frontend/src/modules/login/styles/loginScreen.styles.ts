@@ -24,7 +24,10 @@ export const ContainerLogin = styled.div`
   z-index: 0;
 `;
 
-export const LogoLogin = styled.img``;
+export const LogoLogin = styled.img`
+  width: 202px;
+  height: 143px;
+`;
 
 export const LimitedContainer = styled.div`
   width: 100%;
