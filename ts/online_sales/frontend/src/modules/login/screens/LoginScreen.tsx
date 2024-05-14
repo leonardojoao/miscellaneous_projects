@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useState } from 'react';
 
 import Button from '../../../shared/buttons/button/Button';
@@ -23,8 +24,19 @@ const LoginScreen = () => {
     setPassword(event.target.value);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     console.log(username, password);
+
+    const returnObject = await axios({
+      method: 'POST',
+      url: 'http://localhost:8080/auth',
+      data: {
+        email: username,
+        password,
+      },
+    });
+
+    console.log(returnObject);
   };
 
   return (
