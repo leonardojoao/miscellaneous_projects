@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useState } from 'react';
 
 import logo from '../../../../public/logo.svg';
@@ -25,8 +26,18 @@ const LoginScreen = () => {
     setPassword(e.target.value);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     console.log('Login', username, password);
+
+    try {
+      const response = await axios.post('http://localhost:8080/auth', {
+        email: username,
+        password,
+      });
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
