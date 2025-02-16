@@ -1,9 +1,10 @@
-import axios from 'axios';
+// import axios from 'axios';
 import { useState } from 'react';
 
 import logo from '../../../../public/logo.svg';
-import Button from '../../../shared/buttons/button/button';
-import Input from '../../../shared/inputs/input/Input';
+import Button from '../../../shared/components/buttons/button/button';
+import Input from '../../../shared/components/inputs/input/Input';
+import useResquests from '../../../shared/hooks/useRequests';
 import {
   BackgroundImage,
   BackgroundImageContainer,
@@ -17,6 +18,7 @@ import {
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const { postRequest, loading } = useResquests();
 
   const handleUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -29,15 +31,19 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     console.log('Login', username, password);
 
-    try {
-      const response = await axios.post('http://localhost:8080/auth', {
-        email: username,
-        password,
-      });
-      console.log(response);
-    } catch (error) {
-      console.log(error);
-    }
+    postRequest('http://localhost:8080/auth', {
+      email: username,
+      password,
+    });
+    // try {
+    //   const response = await axios.post('http://localhost:8080/auth', {
+    //     email: username,
+    //     password,
+    //   });
+    //   console.log(response);
+    // } catch (error) {
+    //   console.log(error);
+    // }
   };
 
   return (
@@ -61,7 +67,13 @@ const LoginScreen = () => {
             value={password}
           />
 
-          <Button title="ENTRAR" margin="64px 0px 16px 0px" type="primary" onClick={handleLogin} />
+          <Button
+            loading={loading}
+            title="ENTRAR"
+            margin="64px 0px 16px 0px"
+            type="primary"
+            onClick={handleLogin}
+          />
         </LoginContentWrapper>
       </LoginContent>
     </LoginContainer>
