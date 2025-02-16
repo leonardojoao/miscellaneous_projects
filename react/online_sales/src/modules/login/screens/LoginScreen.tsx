@@ -4,6 +4,7 @@ import { useState } from 'react';
 import logo from '../../../../public/logo.svg';
 import Button from '../../../shared/components/buttons/button/button';
 import Input from '../../../shared/components/inputs/input/Input';
+import { useGlobalContext } from '../../../shared/hooks/useGlobalContext';
 import useResquests from '../../../shared/hooks/useRequests';
 import {
   BackgroundImage,
@@ -16,6 +17,7 @@ import {
 } from '../styles/loginScreen.styles';
 
 const LoginScreen = () => {
+  const { accessToken, setAcessToken } = useGlobalContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { postRequest, loading } = useResquests();
@@ -29,21 +31,12 @@ const LoginScreen = () => {
   };
 
   const handleLogin = async () => {
-    console.log('Login', username, password);
-
-    postRequest('http://localhost:8080/auth', {
+8     const dataRequest = await postRequest('http://localhost:8080/auth', {
       email: username,
       password,
     });
-    // try {
-    //   const response = await axios.post('http://localhost:8080/auth', {
-    //     email: username,
-    //     password,
-    //   });
-    //   console.log(response);
-    // } catch (error) {
-    //   console.log(error);
-    // }
+
+    setAcessToken(dataRequest.accessToken);
   };
 
   return (
@@ -56,7 +49,7 @@ const LoginScreen = () => {
         <LoginContentWrapper>
           <LogoImage src={logo} alt="Logo" />
 
-          <LoginTitle level={2}>Login</LoginTitle>
+          <LoginTitle level={2}>Login ({accessToken})</LoginTitle>
 
           <Input title="USUÁRIO" margin="32px 0px 0px" onChange={handleUsername} value={username} />
           <Input
