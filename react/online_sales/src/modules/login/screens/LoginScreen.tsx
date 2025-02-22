@@ -5,7 +5,7 @@ import logo from '../../../../public/logo.svg';
 import Button from '../../../shared/components/buttons/button/button';
 import Input from '../../../shared/components/inputs/input/Input';
 import { useGlobalContext } from '../../../shared/hooks/useGlobalContext';
-import useResquests from '../../../shared/hooks/useRequests';
+import { useRequests } from '../../../shared/hooks/useRequests';
 import {
   BackgroundImage,
   BackgroundImageContainer,
@@ -17,10 +17,10 @@ import {
 } from '../styles/loginScreen.styles';
 
 const LoginScreen = () => {
-  const { accessToken, setAcessToken } = useGlobalContext();
+  const { accessToken, setAccessToken } = useGlobalContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { postRequest, loading } = useResquests();
+  const { postRequest, loading } = useRequests();
 
   const handleUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -31,12 +31,12 @@ const LoginScreen = () => {
   };
 
   const handleLogin = async () => {
-8     const dataRequest = await postRequest('http://localhost:8080/auth', {
+    const dataRequest = await postRequest('http://localhost:8080/auth', {
       email: username,
       password,
     });
 
-    setAcessToken(dataRequest.accessToken);
+    setAccessToken(dataRequest.accessToken);
   };
 
   return (

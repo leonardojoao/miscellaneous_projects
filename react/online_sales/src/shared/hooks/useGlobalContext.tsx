@@ -1,24 +1,30 @@
 import { createContext, useContext, useState } from 'react';
 
+type NotificationType = 'success' | 'info' | 'warning' | 'error';
+
+interface NotificationProps {
+  message: string;
+  type: NotificationType;
+  description?: string;
+}
+
 interface GlobalData {
   accessToken?: string;
+  notification?: NotificationProps;
 }
 
 interface GlobalContextProps {
   globalData: GlobalData;
-  // setGlobalData: React.Dispatch<React.SetStateAction<GlobalData>>;
   setGlobalData: (globalData: GlobalData) => void;
 }
 
-// const GlobalContext = createContext<GlobalContextProps>({} as GlobalContextProps);
 const GlobalContext = createContext({} as GlobalContextProps);
 
-interface GlobalContextProviderProps {
+interface GlobalProviderProps {
   children: React.ReactNode;
 }
 
-// export const GlobalContextProvider: React.FC<GlobalContextProviderProps> = ({ children }) => {
-export const GlobalContextProvider = ({ children }: GlobalContextProviderProps) => {
+export const GlobalProvider = ({ children }: GlobalProviderProps) => {
   const [globalData, setGlobalData] = useState<GlobalData>({});
 
   return (
@@ -38,8 +44,21 @@ export const useGlobalContext = () => {
     });
   };
 
+  const setNotification = (message: string, type: NotificationType, description?: string) => {
+    setGlobalData({
+      ...globalData,
+      notification: {
+        message,
+        type,
+        description,
+      },
+    });
+  };
+
   return {
+    notification: globalData?.notification,
     accessToken: globalData?.accessToken,
-    setAcessToken: setAccessToken,
+    setAccessToken,
+    setNotification,
   };
 };
