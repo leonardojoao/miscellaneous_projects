@@ -17,7 +17,7 @@ import {
 } from '../styles/loginScreen.styles';
 
 const LoginScreen = () => {
-  const { accessToken, setAccessToken } = useGlobalContext();
+  const { accessToken, setAccessToken, setNotification } = useGlobalContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { postRequest, loading } = useRequests();
@@ -31,12 +31,17 @@ const LoginScreen = () => {
   };
 
   const handleLogin = async () => {
-    const dataRequest = await postRequest('http://localhost:8080/auth', {
-      email: username,
-      password,
-    });
+    try {
+      await postRequest('http://localhost:8080/auth', {
+        email: username,
+        password,
+      });
+      await setNotification('Entrando...', 'success', 'Juca');
 
-    setAccessToken(dataRequest.accessToken);
+      // setAccessToken(dataRequest.accessToken);
+    } catch (error) {
+      await setNotification('Erro ao realizar login', 'error', 'Verifique suas credenciais');
+    }
   };
 
   return (
@@ -49,7 +54,7 @@ const LoginScreen = () => {
         <LoginContentWrapper>
           <LogoImage src={logo} alt="Logo" />
 
-          <LoginTitle level={2}>Login ({accessToken})</LoginTitle>
+          <LoginTitle level={2}>Login</LoginTitle>
 
           <Input title="USUÁRIO" margin="32px 0px 0px" onChange={handleUsername} value={username} />
           <Input

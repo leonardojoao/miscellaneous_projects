@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { useState } from 'react';
 
-import { useGlobalContext } from './useGlobalContext';
-
 interface PostRequestBody {
   email: string;
   password: string;
@@ -10,10 +8,10 @@ interface PostRequestBody {
 
 export const useRequests = () => {
   const [loading, setLoading] = useState(false);
-  const { setNotification } = useGlobalContext();
 
   const getRequest = async (url: string) => {
     setLoading(true);
+
     return await axios({
       method: 'get',
       url: url,
@@ -23,25 +21,30 @@ export const useRequests = () => {
       })
       .catch(() => {
         alert('Erro');
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
   const postRequest = async (url: string, body: PostRequestBody) => {
     setLoading(true);
+
     const returnData = await axios({
       method: 'post',
       url: url,
       data: body,
     })
-      .then((result) => {
-        setNotification('Entrando...', 'success');
+      .then(async (result) => {
         return result.data;
       })
-      .catch(() => {
-        setNotification('Senha inválida', 'error');
+      .catch((error) => {
+        throw error;
+      })
+      .finally(() => {
+        setLoading(false);
       });
 
-    setLoading(false);
     return returnData;
   };
 
