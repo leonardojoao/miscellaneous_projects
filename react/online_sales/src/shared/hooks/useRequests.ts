@@ -24,13 +24,13 @@ export const useRequests = () => {
       });
   };
 
-  const postRequest = async (url: string, body: unknown) => {
+  const postRequest = async <T>(url: string, body: unknown): Promise<T> => {
     setLoading(true);
 
     const returnData = await connectionAPI
       .post(url, body)
       .then((result) => {
-        return result;
+        return result as T;
       })
       .catch((error) => {
         throw error;

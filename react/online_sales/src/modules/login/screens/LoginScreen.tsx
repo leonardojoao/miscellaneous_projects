@@ -15,6 +15,7 @@ import {
   LoginTitle,
   LogoImage,
 } from '../styles/loginScreen.styles';
+import { UserType } from '../types/UserType';
 
 const LoginScreen = () => {
   const { accessToken, setAccessToken, setNotification } = useGlobalContext();
@@ -32,15 +33,15 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      await postRequest('http://localhost:8080/auth', {
+      const dataRequest = await postRequest<UserType>('http://localhost:8080/auth', {
         email: username,
         password,
       });
       await setNotification('Entrando...', 'success', 'Login realizado com sucesso');
 
-      // setAccessToken(dataRequest.accessToken);
+      setAccessToken(dataRequest.accessToken);
     } catch (error) {
-      await setNotification('Erro ao realizar login', 'error', 'Verifique suas credenciais');
+      await setNotification('Erro ao realizar login', 'error', 'VerifiquePosso suas credenciais');
     }
   };
 
