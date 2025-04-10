@@ -1,10 +1,7 @@
 import axios from 'axios';
 import { useState } from 'react';
 
-interface PostRequestBody {
-  email: string;
-  password: string;
-}
+import connectionAPI from '../functions/connection/connectionAPI';
 
 export const useRequests = () => {
   const [loading, setLoading] = useState(false);
@@ -27,16 +24,13 @@ export const useRequests = () => {
       });
   };
 
-  const postRequest = async (url: string, body: PostRequestBody) => {
+  const postRequest = async (url: string, body: unknown) => {
     setLoading(true);
 
-    const returnData = await axios({
-      method: 'post',
-      url: url,
-      data: body,
-    })
-      .then(async (result) => {
-        return result.data;
+    const returnData = await connectionAPI
+      .post(url, body)
+      .then((result) => {
+        return result;
       })
       .catch((error) => {
         throw error;

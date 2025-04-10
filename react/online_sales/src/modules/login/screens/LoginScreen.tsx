@@ -36,7 +36,7 @@ const LoginScreen = () => {
         email: username,
         password,
       });
-      await setNotification('Entrando...', 'success', 'Juca');
+      await setNotification('Entrando...', 'success', 'Login realizado com sucesso');
 
       // setAccessToken(dataRequest.accessToken);
     } catch (error) {
