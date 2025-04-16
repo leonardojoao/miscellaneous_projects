@@ -18,4 +18,5 @@ export const ERROR_MESSAGE = {
   BAD_GATEWAY: 'Bad gateway',
   SERVICE_UNAVAILABLE: 'Service unavailable',
   GATEWAY_TIMEOUT: 'Gateway timeout',
+  INVALID_CREDENTIALS: 'Invalid credentials',
 };

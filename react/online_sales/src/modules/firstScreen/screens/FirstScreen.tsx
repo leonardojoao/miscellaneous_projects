@@ -1,23 +1,38 @@
 import { Spin } from 'antd';
 import { useEffect } from 'react';
-import { getAuthorizationToken } from '../../../shared/functions/connection/auth';
-
 import { useNavigate } from 'react-router-dom';
-import { ProductRoutesEnum } from '../../product/routes';
+
+import { API_URL_USER } from '../../../shared/constants/urls';
+import {
+  getAuthorizationToken,
+  unsetAuthorizationToken,
+} from '../../../shared/functions/connection/auth';
+import connectionAPI from '../../../shared/functions/connection/connectionAPI';
 import { LoginRoutesEnum } from '../../login/routes';
+import { ProductRoutesEnum } from '../../product/routes';
 
 const FirstScreen = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
+  const verifyToken = async () => {
     const token = getAuthorizationToken();
 
     if (token) {
-      navigate(ProductRoutesEnum.PRODUCT);
-    } else {
-      navigate(LoginRoutesEnum.LOGIN);
+      await connectionAPI
+        .get(API_URL_USER)
+        .then(() => {
+          navigate(ProductRoutesEnum.PRODUCT);
+        })
+        .catch(() => {
+          unsetAuthorizationToken();
+          navigate(LoginRoutesEnum.LOGIN);
+        });
     }
-  })
+  };
+
+  useEffect(() => {
+    verifyToken();
+  });
 
   return <Spin size="large" />;
 };

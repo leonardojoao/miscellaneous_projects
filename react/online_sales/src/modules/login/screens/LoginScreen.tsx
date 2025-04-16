@@ -1,10 +1,8 @@
-// import axios from 'axios';
 import { useState } from 'react';
 
 import logo from '../../../../public/logo.svg';
 import Button from '../../../shared/components/buttons/button/button';
 import Input from '../../../shared/components/inputs/input/Input';
-import { useGlobalContext } from '../../../shared/hooks/useGlobalContext';
 import { useRequests } from '../../../shared/hooks/useRequests';
 import {
   BackgroundImage,
@@ -15,13 +13,11 @@ import {
   LoginTitle,
   LogoImage,
 } from '../styles/loginScreen.styles';
-import { UserType } from '../types/UserType';
 
 const LoginScreen = () => {
-  const { accessToken, setAccessToken, setNotification } = useGlobalContext();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { postRequest, loading } = useRequests();
+  const { authRequest, loading } = useRequests();
 
   const handleUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
@@ -31,18 +27,11 @@ const LoginScreen = () => {
     setPassword(e.target.value);
   };
 
-  const handleLogin = async () => {
-    try {
-      const dataRequest = await postRequest<UserType>('http://localhost:8080/auth', {
-        email: username,
-        password,
-      });
-      await setNotification('Entrando...', 'success', 'Login realizado com sucesso');
-
-      setAccessToken(dataRequest.accessToken);
-    } catch (error) {
-      await setNotification('Erro ao realizar login', 'error', 'VerifiquePosso suas credenciais');
-    }
+  const handleLogin = () => {
+    authRequest({
+      email: username,
+      password,
+    });
   };
 
   return (
