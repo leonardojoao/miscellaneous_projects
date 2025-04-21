@@ -5,5 +5,6 @@ import { ShopeeService } from './shopee.service';
 @Module({
   imports: [ConfigModule],
   providers: [ShopeeService],
+  exports: [ShopeeService],
 })
 export class ShopeeModule {}

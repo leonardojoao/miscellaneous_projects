@@ -23,7 +23,7 @@ export class ShopeeService {
       }
     } catch (error) {
       console.error('Erro ao extrair IDs:', error.message);
-      return null;
+      throw error;
     }
   }
 
