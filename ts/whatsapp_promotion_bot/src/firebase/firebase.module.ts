@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { FirebaseService } from './links/links.service';
+import { LinksService } from './links/links.service';
 import { ContactsService } from './contacts/contacts.service';
 
 @Module({
   imports: [ConfigModule],
-  providers: [FirebaseService, ContactsService],
-  exports: [FirebaseService],
+  providers: [LinksService, ContactsService],
+  exports: [LinksService],
 })
 export class FirebaseModule {}

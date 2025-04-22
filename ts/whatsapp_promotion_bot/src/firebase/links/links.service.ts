@@ -15,7 +15,7 @@ import {
 } from './interface/links.interface';
 
 @Injectable()
-export class FirebaseService implements OnModuleInit {
+export class LinksService implements OnModuleInit {
   private firebaseConfig = {
     apiKey: this.configService.get('FIREBASE_API_KEY'),
     authDomain: this.configService.get('FIREBASE_AUTH_DOMAIN'),

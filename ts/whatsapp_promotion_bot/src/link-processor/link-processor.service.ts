@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseSaveLinkData } from 'src/firebase/links/interface/links.interface';
-import { FirebaseService } from 'src/firebase/links/links.service';
+import { LinksService } from 'src/firebase/links/links.service';
 import { ShopeeService } from 'src/shopee/shopee.service';
 
 @Injectable()
 export class LinkProcessorService {
   constructor(
     private readonly shopeeService: ShopeeService,
-    private readonly firebaseService: FirebaseService,
+    private readonly linksService: LinksService,
   ) {}
 
   async processLink(link: string): Promise<void> {
@@ -26,7 +26,7 @@ export class LinkProcessorService {
         count: 0,
         statusError: false,
       };
-      await this.firebaseService.saveLinkData(linkData);
+      await this.linksService.saveLinkData(linkData);
     } catch (error) {
       throw error;
     }
