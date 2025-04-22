@@ -1,103 +1,15 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { initializeApp } from 'firebase/app';
-import {
-  createUserWithEmailAndPassword,
-  getAuth,
-  signInWithEmailAndPassword,
-} from 'firebase/auth';
+import { Inject, Injectable } from '@nestjs/common';
+import { ref, push, set, get, Database } from 'firebase/database';
 
-import { getDatabase, ref, push, set, get } from 'firebase/database';
+import { FirebaseAuthService } from '../firebase-auth.service';
 import { FirebaseContactData } from './interface/contacts.interface';
 
 @Injectable()
-export class ContactsService implements OnModuleInit {
-  private firebaseConfig = {
-    apiKey: this.configService.get('FIREBASE_API_KEY'),
-    authDomain: this.configService.get('FIREBASE_AUTH_DOMAIN'),
-    databaseURL: this.configService.get('FIREBASE_DATABASE_URL'),
-    projectId: this.configService.get('FIREBASE_PROJECT_ID'),
-    storageBucket: this.configService.get('FIREBASE_STORAGE_BUCKET'),
-    messagingSenderId: this.configService.get('FIREBASE_MESSAGING_SENDER_ID'),
-    appId: this.configService.get('FIREBASE_APP_ID'),
-    measurementId: this.configService.get('FIREBASE_MEASUREMENT_ID'),
-  };
-
-  private app = initializeApp(this.firebaseConfig);
-  private database = getDatabase(this.app);
-  private auth = getAuth(this.app);
-
-  constructor(private configService: ConfigService) {}
-
-  async onModuleInit() {
-    const email = this.configService.get<string>('FIREBASE_TEST_EMAIL');
-    const password = this.configService.get<string>('FIREBASE_TEST_PASSWORD');
-
-    if (!email || !password) {
-      console.error(
-        'FIREBASE_TEST_EMAIL ou FIREBASE_TEST_PASSWORD não configurados.',
-      );
-      return;
-    }
-
-    try {
-      const hasUser = await this.attemptUserCreation(email, password);
-
-      if (hasUser) {
-        await this.loginUser(email, password);
-        console.log(`Login realizado com sucesso: ${email}`);
-      }
-    } catch (error) {
-      console.error(`Erro ao logar com ${email}:`, error);
-    }
-  }
-
-  async createUser(email: string, password: string): Promise<void> {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        this.auth,
-        email,
-        password,
-      );
-
-      console.log('Usuário criado:', userCredential.user.uid);
-    } catch (error) {
-      if (error.code !== 'auth/email-already-in-use') {
-        console.error('Erro ao criar:', error.code);
-      } else {
-        console.error('Usuário ja cadastrado');
-      }
-      throw error;
-    }
-  }
-
-  async attemptUserCreation(email: string, password: string): Promise<boolean> {
-    try {
-      await this.createUser(email, password);
-      return true;
-    } catch (error) {
-      if (error.code === 'auth/email-already-in-use') {
-        console.error('Usuário já existe, tentando login...');
-        return true;
-      }
-      return false;
-    }
-  }
-
-  async loginUser(email: string, password: string): Promise<void> {
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        this.auth,
-        email,
-        password,
-      );
-
-      console.log('Logado como:', userCredential.user.uid);
-    } catch (error) {
-      console.error('Erro de login:', error);
-      throw error;
-    }
-  }
+export class ContactsService {
+  constructor(
+    @Inject('FIREBASE_DB') private readonly database: Database,
+    private readonly firebaseAuthService: FirebaseAuthService,
+  ) {}
 
   async saveContactData(data: FirebaseContactData): Promise<void> {
     const { name, phone, add } = data;
