@@ -4,6 +4,7 @@ import { firebaseProviders } from './firebase.providers';
 import { LinksService } from './links/links.service';
 import { ContactsService } from './contacts/contacts.service';
 import { FirebaseAuthService } from './firebase-auth.service';
+import { GroupsService } from './groups/groups.service';
 
 @Module({
   imports: [ConfigModule],
@@ -12,7 +13,14 @@ import { FirebaseAuthService } from './firebase-auth.service';
     FirebaseAuthService,
     LinksService,
     ContactsService,
+    GroupsService,
   ],
-  exports: [...firebaseProviders, FirebaseAuthService, LinksService],
+  exports: [
+    ...firebaseProviders,
+    FirebaseAuthService,
+    LinksService,
+    ContactsService,
+    GroupsService,
+  ],
 })
 export class FirebaseModule {}
