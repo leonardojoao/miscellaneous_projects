@@ -71,7 +71,7 @@ export class ContactsService {
     }
   }
 
-  async updateLinkData(data: FirebaseContactData): Promise<void> {
+  async updateContactData(data: FirebaseContactData): Promise<void> {
     const { id, name, phone, add } = data;
     try {
       const dataRef = ref(this.database, `contacts/${id}`);

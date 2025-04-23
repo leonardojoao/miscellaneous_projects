@@ -1,7 +1,8 @@
 export interface FirebaseLinkData {
-  id: string;
+  id?: string;
   link: string;
   count: number;
+  category: string;
   statusError: boolean;
 }
 
