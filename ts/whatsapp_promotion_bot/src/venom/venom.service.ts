@@ -53,6 +53,15 @@ export class VenomService implements OnModuleInit {
     }
   }
 
+  async sendImageMessage(link: string, message: string) {
+    const groupId = this.configService.get('VENOM_GROUP_ID');
+    try {
+      await this.client.sendImage(groupId, link, 'image.jpg', message);
+    } catch (error) {
+      throw new Error(`Erro ao enviar imagem ${error}`);
+    }
+  }
+
   async addContactsToGroup() {
     const groupId = this.configService.get('VENOM_GROUP_ID');
 
