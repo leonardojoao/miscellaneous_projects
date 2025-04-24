@@ -3,9 +3,11 @@ import { ref, push, set, get, Database } from 'firebase/database';
 
 import { FirebaseAuthService } from '../firebase-auth.service';
 import { FirebaseLinkData } from './interface/links.interface';
+import { Messages } from '../messages.enum';
 
 @Injectable()
 export class LinksService {
+  tableName = 'links';
   constructor(
     @Inject('FIREBASE_DB') private readonly database: Database,
     private readonly firebaseAuthService: FirebaseAuthService,
@@ -19,11 +21,13 @@ export class LinksService {
       const newDataRef = push(dataRef);
 
       await set(newDataRef, { link, count, statusError });
-
-      console.log(`Dados salvos com sucesso para o link: ${link}`);
+      console.log(`${Messages.SAVE_SUCCESS} /${this.tableName}: ${link}`);
     } catch (error) {
-      console.error(`Erro ao salvar dados para o link: ${link}`, error.stack);
-      throw new Error(`Falha ao salvar dados: ${error.message}`);
+      console.log(
+        `${Messages.SAVE_ERROR} /${this.tableName}: ${link}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.SAVE_ERROR}: ${error.message}`);
     }
   }
 
@@ -35,12 +39,15 @@ export class LinksService {
       if (snapshot.exists()) {
         return snapshot.val() as FirebaseLinkData;
       } else {
-        console.warn(`Nenhum dado encontrado para o ID: ${id}`);
+        console.warn(`${Messages.NOT_FOUND} /${this.tableName}: ${id}`);
         return null;
       }
     } catch (error) {
-      console.error(`Erro ao buscar dados para o ID: ${id}`, error.stack);
-      throw new Error(`Falha ao buscar dados: ${error.message}`);
+      console.error(
+        `${Messages.FETCH_ERROR} /${this.tableName}: ${id}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ERROR}: ${error.message}`);
     }
   }
 
@@ -56,12 +63,15 @@ export class LinksService {
           ...value,
         }));
       } else {
-        console.warn('Nenhum dado encontrado na base de dados /links.');
+        console.warn(`${Messages.FETCH_ALL_ERROR} /${this.tableName}`);
         return [];
       }
     } catch (error) {
-      console.error('Erro ao buscar dados de /links', error.stack);
-      throw new Error(`Falha ao buscar dados: ${error.message}`);
+      console.error(
+        `${Messages.FETCH_ALL_ERROR} /${this.tableName}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ALL_ERROR}: ${error.message}`);
     }
   }
 
@@ -71,10 +81,10 @@ export class LinksService {
       const dataRef = ref(this.database, `links/${id}`);
       await set(dataRef, { link, count, statusError });
 
-      console.log(`Dados atualizados com sucesso para ID: ${id}`);
+      console.log(`${Messages.UPDATE_SUCCESS} /${this.tableName}: ${id}`);
     } catch (error) {
-      console.error(`Erro ao atualizar dados para ID: ${id}`, error.stack);
-      throw new Error(`Falha ao atualizar dados: ${error.message}`);
+      console.error(`${Messages.UPDATE_ERROR} /${this.tableName}: ${id}`);
+      throw new Error(`${Messages.UPDATE_ERROR}: ${error.message}`);
     }
   }
 }
