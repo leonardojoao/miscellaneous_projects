@@ -2,11 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ref, push, set, get, Database } from 'firebase/database';
 
 import { FirebaseAuthService } from '../firebase-auth.service';
-import {
-  FirebaseLinkData,
-  FirebaseSaveLinkData,
-  FirebaseUpdateLinkData,
-} from './interface/links.interface';
+import { FirebaseLinkData } from './interface/links.interface';
 
 @Injectable()
 export class LinksService {
@@ -15,7 +11,7 @@ export class LinksService {
     private readonly firebaseAuthService: FirebaseAuthService,
   ) {}
 
-  async saveLinkData(data: FirebaseSaveLinkData): Promise<void> {
+  async saveLinkData(data: FirebaseLinkData): Promise<void> {
     const { link, count, statusError } = data;
 
     try {
@@ -48,7 +44,7 @@ export class LinksService {
     }
   }
 
-  async getAllLinks(): Promise<FirebaseUpdateLinkData[]> {
+  async getAllLinks(): Promise<FirebaseLinkData[]> {
     try {
       const dataRef = ref(this.database, 'links');
       const snapshot = await get(dataRef);
@@ -69,7 +65,7 @@ export class LinksService {
     }
   }
 
-  async updateLinkData(data: FirebaseUpdateLinkData): Promise<void> {
+  async updateLinkData(data: FirebaseLinkData): Promise<void> {
     const { id, link, count, statusError } = data;
     try {
       const dataRef = ref(this.database, `links/${id}`);
