@@ -17,7 +17,7 @@ export class LinksService {
     const { link, count, statusError } = data;
 
     try {
-      const dataRef = ref(this.database, 'links');
+      const dataRef = ref(this.database, this.tableName);
       const newDataRef = push(dataRef);
 
       await set(newDataRef, { link, count, statusError });
@@ -31,9 +31,9 @@ export class LinksService {
     }
   }
 
-  async getLink(id: string): Promise<FirebaseLinkData | null> {
+  async getLinkData(id: string): Promise<FirebaseLinkData | null> {
     try {
-      const dataRef = ref(this.database, `links/${id}`);
+      const dataRef = ref(this.database, `${this.tableName}/${id}`);
       const snapshot = await get(dataRef);
 
       if (snapshot.exists()) {
@@ -51,9 +51,9 @@ export class LinksService {
     }
   }
 
-  async getAllLinks(): Promise<FirebaseLinkData[]> {
+  async getAllLinksData(): Promise<FirebaseLinkData[]> {
     try {
-      const dataRef = ref(this.database, 'links');
+      const dataRef = ref(this.database, this.tableName);
       const snapshot = await get(dataRef);
 
       if (snapshot.exists()) {
@@ -78,7 +78,7 @@ export class LinksService {
   async updateLinkData(data: FirebaseLinkData): Promise<void> {
     const { id, link, count, statusError } = data;
     try {
-      const dataRef = ref(this.database, `links/${id}`);
+      const dataRef = ref(this.database, `${this.tableName}/${id}`);
       await set(dataRef, { link, count, statusError });
 
       console.log(`${Messages.UPDATE_SUCCESS} /${this.tableName}: ${id}`);
