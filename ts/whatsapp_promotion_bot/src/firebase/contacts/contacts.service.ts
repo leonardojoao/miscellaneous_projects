@@ -1,5 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ref, push, set, get, Database } from 'firebase/database';
+import {
+  ref,
+  push,
+  set,
+  get,
+  Database,
+  orderByChild,
+  equalTo,
+  query,
+} from 'firebase/database';
 
 import { FirebaseAuthService } from '../firebase-auth.service';
 import { FirebaseContactData } from './interface/contacts.interface';
@@ -12,15 +21,15 @@ export class ContactsService {
   ) {}
 
   async saveContactData(data: FirebaseContactData): Promise<void> {
-    const { name, phone, add } = data;
+    const { name, phone, category } = data;
 
     try {
       const dataRef = ref(this.database, 'contacts');
       const newDataRef = push(dataRef);
 
-      await set(newDataRef, { name, phone, add });
+      await set(newDataRef, { name, phone, category, add: false });
 
-      console.log(`Dados salvos com sucesso para o contato: ${phone}`);
+      console.log(`Dados salvos com sucesso /contacts: ${phone}`);
     } catch (error) {
       console.error(
         `Erro ao salvar dados para o contato /contacts: ${phone}`,
@@ -50,6 +59,32 @@ export class ContactsService {
     }
   }
 
+  async getByIdContactData(phone: string): Promise<FirebaseContactData | null> {
+    try {
+      const dataRef = ref(this.database, 'contacts');
+      const groupQuery = query(dataRef, orderByChild('phone'), equalTo(phone));
+      const snapshot = await get(groupQuery);
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const [id, value] = Object.entries(data)[0];
+
+        return {
+          id,
+          ...(value as object),
+        } as FirebaseContactData;
+      } else {
+        console.warn(`Nenhum dado encontrado para o phone: ${phone}`);
+        return null;
+      }
+    } catch (error) {
+      console.error('Erro ao buscar dados por id /contacts', error.stack);
+      throw new Error(
+        `Falha ao buscar dados por id /contacts: ${error.message}`,
+      );
+    }
+  }
+
   async getAllContacts(): Promise<FirebaseContactData[]> {
     try {
       const dataRef = ref(this.database, 'contacts');
@@ -72,10 +107,10 @@ export class ContactsService {
   }
 
   async updateContactData(data: FirebaseContactData): Promise<void> {
-    const { id, name, phone, add } = data;
+    const { id, name, phone, category, add } = data;
     try {
       const dataRef = ref(this.database, `contacts/${id}`);
-      await set(dataRef, { name, phone, add });
+      await set(dataRef, { name, phone, category, add });
 
       console.log(`Dados atualizados com sucesso para ID /contacts: ${id}`);
     } catch (error) {
