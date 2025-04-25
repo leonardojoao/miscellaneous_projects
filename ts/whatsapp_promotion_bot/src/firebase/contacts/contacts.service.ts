@@ -26,7 +26,7 @@ export class ContactsService {
     const { name, phone, category } = data;
 
     try {
-      const dataRef = ref(this.database, 'contacts');
+      const dataRef = ref(this.database, this.tableName);
       const newDataRef = push(dataRef);
 
       await set(newDataRef, { name, phone, category, add: false });
@@ -42,7 +42,7 @@ export class ContactsService {
 
   async getContactData(id: string): Promise<FirebaseContactData | null> {
     try {
-      const dataRef = ref(this.database, `links/${id}`);
+      const dataRef = ref(this.database, `${this.tableName}/${id}`);
       const snapshot = await get(dataRef);
 
       if (snapshot.exists()) {
@@ -66,7 +66,7 @@ export class ContactsService {
 
   async getByIdContactData(phone: string): Promise<FirebaseContactData | null> {
     try {
-      const dataRef = ref(this.database, 'contacts');
+      const dataRef = ref(this.database, this.tableName);
       const groupQuery = query(dataRef, orderByChild('phone'), equalTo(phone));
       const snapshot = await get(groupQuery);
 
@@ -93,7 +93,7 @@ export class ContactsService {
 
   async getAllContactsData(): Promise<FirebaseContactData[]> {
     try {
-      const dataRef = ref(this.database, 'contacts');
+      const dataRef = ref(this.database, this.tableName);
       const snapshot = await get(dataRef);
 
       if (snapshot.exists()) {
@@ -118,7 +118,7 @@ export class ContactsService {
   async updateContactData(data: FirebaseContactData): Promise<void> {
     const { id, name, phone, category, add } = data;
     try {
-      const dataRef = ref(this.database, `contacts/${id}`);
+      const dataRef = ref(this.database, `${this.tableName}/${id}`);
 
       await set(dataRef, { name, phone, category, add });
       console.log(`${Messages.UPDATE_SUCCESS} /${this.tableName}: ${id}`);
