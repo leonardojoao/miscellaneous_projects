@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { create, Whatsapp } from 'venom-bot';
-import { VENOM_CONTACTS, DEFAULT_MESSAGE } from './venom.constants';
+import { VENOM_CONTACTS } from './venom.constants';
 
 @Injectable()
 export class VenomService implements OnModuleInit {
@@ -20,7 +20,7 @@ export class VenomService implements OnModuleInit {
 
       this.listenMessages();
     } catch (err) {
-      this.logger.error('Erro ao iniciar o Venom Bot', err);
+      console.error('Erro ao iniciar o Venom Bot', err);
     }
   }
 
@@ -32,33 +32,41 @@ export class VenomService implements OnModuleInit {
     });
   }
 
-  async sendGroupMessage() {
+  async sendGroupMessage(groupId: string, message: string) {
     try {
-      const groupId = this.configService.get('VENOM_GROUP_ID');
-      await this.client.sendText(groupId, DEFAULT_MESSAGE);
-      this.logger.log('Mensagem enviada com sucesso');
-    } catch (err) {
-      this.logger.error('Erro ao enviar mensagem', err);
+      await this.client.sendText(groupId, message);
+      console.log('Mensagem enviada com sucesso');
+    } catch (error) {
+      this.logger.error('Erro ao enviar mensagem', error);
+      throw new Error(`Erro ao enviar mensagem ${error}`);
     }
   }
 
-  async sendLinkPreviewMessage() {
-    const groupId = this.configService.get('VENOM_GROUP_ID');
-    const link = this.configService.get('VENOM_LINK');
+  async sendLinkPreviewMessage(groupId: string, link: string, message: string) {
     try {
-      await this.client.sendLinkPreview(groupId, link, link, DEFAULT_MESSAGE);
-      this.logger.log('Mensagem com preview enviada com sucesso');
-    } catch (err) {
-      this.logger.error('Erro ao enviar preview', err);
+      await this.client.sendLinkPreview(groupId, link, link, message);
+      console.log('Mensagem com preview enviada com sucesso');
+    } catch (error) {
+      console.error('Erro ao enviar preview', error);
+      throw new Error(`Erro ao enviar preview ${error}`);
     }
   }
 
-  async sendImageMessage(link: string, message: string) {
-    const groupId = this.configService.get('VENOM_GROUP_ID');
+  async sendImageMessage(groupId: string, link: string, message: string) {
     try {
       await this.client.sendImage(groupId, link, 'image.jpg', message);
     } catch (error) {
       throw new Error(`Erro ao enviar imagem ${error}`);
+    }
+  }
+
+  async addContactToGroup(groupId: string, contactId: string) {
+    try {
+      await this.client.addParticipant(groupId, contactId);
+      this.logger.log(`Contato ${contactId} adicionado ao grupo`);
+    } catch (error) {
+      console.error(`Erro ao adicionar ${contactId}`, error);
+      throw new Error(`Erro ao adicionar ${contactId} ${error}`);
     }
   }
 
@@ -72,8 +80,9 @@ export class VenomService implements OnModuleInit {
       try {
         await this.client.addParticipant(groupId, contactId);
         this.logger.log(`Contato ${contactId} adicionado ao grupo`);
-      } catch (err) {
-        this.logger.error(`Erro ao adicionar ${contactId}`, err);
+      } catch (error) {
+        console.error(`Erro ao adicionar ${contactId}`, error);
+        throw new Error(`Erro ao adicionar ${contactId} ${error}`);
       }
     }
   }
@@ -82,9 +91,9 @@ export class VenomService implements OnModuleInit {
     try {
       const inviteLink = this.configService.get('VENOM_INVITE_LINK');
       await this.client.joinGroup(inviteLink);
-      this.logger.log('Entrou no grupo com sucesso');
-    } catch (err) {
-      this.logger.error('Erro ao entrar no grupo', err);
+      console.log('Entrou no grupo com sucesso');
+    } catch (error) {
+      console.error('Erro ao entrar no grupo', error);
     }
   }
 }
