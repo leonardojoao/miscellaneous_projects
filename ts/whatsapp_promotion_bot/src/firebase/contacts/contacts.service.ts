@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { FirebaseContactData } from './interface/contacts.interface';
 import {
   ref,
   push,
@@ -9,12 +10,13 @@ import {
   equalTo,
   query,
 } from 'firebase/database';
-
 import { FirebaseAuthService } from '../firebase-auth.service';
-import { FirebaseContactData } from './interface/contacts.interface';
+import { Messages } from '../messages.enum';
 
 @Injectable()
 export class ContactsService {
+  tableName = 'contacts';
+
   constructor(
     @Inject('FIREBASE_DB') private readonly database: Database,
     private readonly firebaseAuthService: FirebaseAuthService,
@@ -28,18 +30,17 @@ export class ContactsService {
       const newDataRef = push(dataRef);
 
       await set(newDataRef, { name, phone, category, add: false });
-
-      console.log(`Dados salvos com sucesso /contacts: ${phone}`);
+      console.log(`${Messages.SAVE_SUCCESS} /${this.tableName}: ${phone}`);
     } catch (error) {
-      console.error(
-        `Erro ao salvar dados para o contato /contacts: ${phone}`,
+      console.log(
+        `${Messages.SAVE_ERROR} /${this.tableName}: ${phone}`,
         error.stack,
       );
-      throw new Error(`Falha ao salvar dados /contacts: ${error.message}`);
+      throw new Error(`${Messages.SAVE_ERROR}: ${error.message}`);
     }
   }
 
-  async getContact(id: string): Promise<FirebaseContactData | null> {
+  async getContactData(id: string): Promise<FirebaseContactData | null> {
     try {
       const dataRef = ref(this.database, `links/${id}`);
       const snapshot = await get(dataRef);
@@ -47,15 +48,19 @@ export class ContactsService {
       if (snapshot.exists()) {
         return snapshot.val() as FirebaseContactData;
       } else {
-        console.warn(`Nenhum dado encontrado para o ID /contacts: ${id}`);
+        console.log(`${Messages.NOT_FOUND} /${this.tableName}: ${id}`);
         return null;
       }
     } catch (error) {
-      console.error(
-        `Erro ao buscar dados para o ID /contacts: ${id}`,
+      console.log(
+        `${Messages.FETCH_ERROR} /${this.tableName}: ${id}}`,
         error.stack,
       );
-      throw new Error(`Falha ao buscar dados /contacts: ${error.message}`);
+      console.error(
+        `${Messages.FETCH_ERROR} /${this.tableName}: ${id}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ERROR}: ${error.message}`);
     }
   }
 
@@ -74,18 +79,19 @@ export class ContactsService {
           ...(value as object),
         } as FirebaseContactData;
       } else {
-        console.warn(`Nenhum dado encontrado para o phone: ${phone}`);
+        console.warn(`${Messages.NOT_FOUND} /${this.tableName}: ${phone}`);
         return null;
       }
     } catch (error) {
-      console.error('Erro ao buscar dados por id /contacts', error.stack);
-      throw new Error(
-        `Falha ao buscar dados por id /contacts: ${error.message}`,
+      console.error(
+        `${Messages.FETCH_ERROR} /${this.tableName}: ${phone}`,
+        error.stack,
       );
+      throw new Error(`${Messages.FETCH_ERROR}: ${error.message}`);
     }
   }
 
-  async getAllContacts(): Promise<FirebaseContactData[]> {
+  async getAllContactsData(): Promise<FirebaseContactData[]> {
     try {
       const dataRef = ref(this.database, 'contacts');
       const snapshot = await get(dataRef);
@@ -97,12 +103,15 @@ export class ContactsService {
           ...value,
         }));
       } else {
-        console.warn('Nenhum dado encontrado na base de dados /contacts.');
+        console.warn(`${Messages.FETCH_ALL_ERROR} /${this.tableName}`);
         return [];
       }
     } catch (error) {
-      console.error('Erro ao buscar dados de /contacts', error.stack);
-      throw new Error(`Falha ao buscar dados /contacts: ${error.message}`);
+      console.error(
+        `${Messages.FETCH_ALL_ERROR} /${this.tableName}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ALL_ERROR}: ${error.message}`);
     }
   }
 
@@ -110,15 +119,15 @@ export class ContactsService {
     const { id, name, phone, category, add } = data;
     try {
       const dataRef = ref(this.database, `contacts/${id}`);
-      await set(dataRef, { name, phone, category, add });
 
-      console.log(`Dados atualizados com sucesso para ID /contacts: ${id}`);
+      await set(dataRef, { name, phone, category, add });
+      console.log(`${Messages.UPDATE_SUCCESS} /${this.tableName}: ${id}`);
     } catch (error) {
-      console.error(
-        `Erro ao atualizar dados para ID /contacts: ${id}`,
+      console.log(
+        `${Messages.UPDATE_ERROR} /${this.tableName}: ${id}`,
         error.stack,
       );
-      throw new Error(`Falha ao atualizar dados /contacts: ${error.message}`);
+      throw new Error(`${Messages.UPDATE_ERROR}: ${error.message}`);
     }
   }
 }
