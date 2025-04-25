@@ -26,7 +26,7 @@ export class GroupsService {
     const { name, idGroup, category } = data;
 
     try {
-      const dataRef = ref(this.database, 'groups');
+      const dataRef = ref(this.database, this.tableName);
       const newDataRef = push(dataRef);
 
       await set(newDataRef, { name, idGroup, category, addContacts: true });
@@ -42,7 +42,7 @@ export class GroupsService {
 
   async getByIdGroupData(idGroup: string): Promise<FirebaseGroupData | null> {
     try {
-      const dataRef = ref(this.database, 'groups');
+      const dataRef = ref(this.database, this.tableName);
       const groupQuery = query(
         dataRef,
         orderByChild('idGroup'),
@@ -73,7 +73,7 @@ export class GroupsService {
 
   async getAllGroupsData(): Promise<FirebaseGroupData[]> {
     try {
-      const dataRef = ref(this.database, 'groups');
+      const dataRef = ref(this.database, this.tableName);
       const snapshot = await get(dataRef);
 
       if (snapshot.exists()) {
