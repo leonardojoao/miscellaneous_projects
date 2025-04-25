@@ -11,9 +11,12 @@ import {
   set,
 } from 'firebase/database';
 import { FirebaseAuthService } from '../firebase-auth.service';
+import { Messages } from '../messages.enum';
 
 @Injectable()
 export class GroupsService {
+  tableName = 'groups';
+
   constructor(
     @Inject('FIREBASE_DB') private readonly database: Database,
     private readonly firebaseAuthService: FirebaseAuthService,
@@ -27,11 +30,13 @@ export class GroupsService {
       const newDataRef = push(dataRef);
 
       await set(newDataRef, { name, idGroup, category, addContacts: true });
-
-      console.log(`Dados salvos com sucesso /groups: ${idGroup}`);
+      console.log(`${Messages.SAVE_SUCCESS} /${this.tableName}: ${idGroup}`);
     } catch (error) {
-      console.error(`Erro ao salvar dados /groups: ${idGroup}`, error.stack);
-      throw new Error(`Falha ao salvar dados /groups: ${error.message}`);
+      console.error(
+        `${Messages.SAVE_ERROR} /${this.tableName}: ${idGroup}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.SAVE_ERROR}: ${error.message}`);
     }
   }
 
@@ -54,12 +59,15 @@ export class GroupsService {
           ...(value as object),
         } as FirebaseGroupData;
       } else {
-        console.warn(`Nenhum dado encontrado para o ID: ${idGroup}`);
+        console.warn(`${Messages.NOT_FOUND} /${this.tableName}: ${idGroup}`);
         return null;
       }
     } catch (error) {
-      console.error('Erro ao buscar dados por id /groups', error.stack);
-      throw new Error(`Falha ao buscar dados por id /groups: ${error.message}`);
+      console.log(
+        `${Messages.FETCH_ERROR} /${this.tableName}: ${idGroup}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ERROR}: ${error.message}`);
     }
   }
 
@@ -75,12 +83,15 @@ export class GroupsService {
           ...value,
         }));
       } else {
-        console.warn('Nenhum dado encontrado na base de dados /groups.');
+        console.warn(`${Messages.FETCH_ALL_ERROR} /${this.tableName}`);
         return [];
       }
     } catch (error) {
-      console.error('Erro ao buscar dados de /groups', error.stack);
-      throw new Error(`Falha ao buscar dados /groups: ${error.message}`);
+      console.error(
+        `${Messages.FETCH_ALL_ERROR} /${this.tableName}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ALL_ERROR}: ${error.message}`);
     }
   }
 }
