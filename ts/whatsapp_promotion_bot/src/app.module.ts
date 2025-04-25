@@ -1,23 +1,17 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { VenomModule } from './venom/venom.module';
 import { TelegramModule } from './telegram/telegram.module';
-// import { VenomModule } from './venom/venom.module';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
-// import { ShopeeModule } from './shopee/shopee.module';
-// import { FirebaseModule } from './firebase/firebase.module';
+import { GroupsProcessorModule } from './groups-processor/groups-processor.module';
+import { ContactsProcessorModule } from './contacts-processor/contacts-processor.module';
 
 @Module({
   imports: [
-    // ConfigModule.forRoot({ isGlobal: true }),
-    // VenomModule,
     ConfigModule.forRoot({ isGlobal: true }),
-    // VenomModule,
-    // ShopeeModule,
-    // FirebaseModule,
+    VenomModule,
     TelegramModule,
+    GroupsProcessorModule,
+    ContactsProcessorModule,
   ],
-  // controllers: [AppController],
-  // providers: [AppService],
 })
 export class AppModule {}

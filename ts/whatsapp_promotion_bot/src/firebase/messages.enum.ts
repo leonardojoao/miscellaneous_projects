@@ -7,4 +7,6 @@ export enum Messages {
   UPDATE_ERROR = 'Erro ao atualizar dados',
   NOT_FOUND = 'Nenhum dado encontrado',
   DB_EMPTY = 'Nenhum dado encontrado na base de dados',
+  DELETE_SUCCESS = 'Dados excluídos com sucesso',
+  DELETE_ERROR = 'Erro ao excluir dados',
 }
