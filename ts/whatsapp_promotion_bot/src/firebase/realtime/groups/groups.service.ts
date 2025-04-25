@@ -10,8 +10,8 @@ import {
   ref,
   set,
 } from 'firebase/database';
-import { FirebaseAuthService } from '../firebase-auth.service';
-import { Messages } from '../messages.enum';
+import { FirebaseAuthService } from '../../firebase-auth.service';
+import { Messages } from '../../messages.enum';
 
 @Injectable()
 export class GroupsService {

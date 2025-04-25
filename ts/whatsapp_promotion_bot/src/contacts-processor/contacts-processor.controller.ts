@@ -6,7 +6,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { ContactsProcessorService } from './contacts-processor.service';
-import { FirebaseContactData } from 'src/firebase/contacts/interface/contacts.interface';
+import { FirebaseContactData } from 'src/firebase/realtime/contacts/interface/contacts.interface';
 
 @Controller('contacts-processor')
 export class ContactsProcessorController {

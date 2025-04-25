@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ContactsService } from './contacts.service';
-import { FirebaseModule } from '../firebase.module';
+import { FirebaseModule } from '../../firebase.module';
 
 @Module({
   imports: [FirebaseModule],

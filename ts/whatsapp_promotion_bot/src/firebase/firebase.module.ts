@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { firebaseProviders } from './firebase.providers';
-import { LinksService } from './links/links.service';
-import { ContactsService } from './contacts/contacts.service';
+import { LinksService } from './realtime/links/links.service';
+import { ContactsService } from './realtime/contacts/contacts.service';
 import { FirebaseAuthService } from './firebase-auth.service';
-import { GroupsService } from './groups/groups.service';
+import { GroupsService } from './realtime/groups/groups.service';
 
 @Module({
   imports: [ConfigModule],

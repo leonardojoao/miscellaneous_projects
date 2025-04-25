@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ref, push, set, get, Database } from 'firebase/database';
 
-import { FirebaseAuthService } from '../firebase-auth.service';
+import { FirebaseAuthService } from '../../firebase-auth.service';
 import { FirebaseLinkData } from './interface/links.interface';
-import { Messages } from '../messages.enum';
+import { Messages } from '../../messages.enum';
 
 @Injectable()
 export class LinksService {

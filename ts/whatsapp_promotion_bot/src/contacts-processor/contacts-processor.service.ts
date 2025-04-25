@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ContactsService } from 'src/firebase/contacts/contacts.service';
-import { FirebaseContactData } from 'src/firebase/contacts/interface/contacts.interface';
+import { ContactsService } from 'src/firebase/realtime/contacts/contacts.service';
+import { FirebaseContactData } from 'src/firebase/realtime/contacts/interface/contacts.interface';
 
 @Injectable()
 export class ContactsProcessorService {
