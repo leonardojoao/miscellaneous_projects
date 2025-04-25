@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { FirebaseLinkData } from 'src/firebase/links/interface/links.interface';
-import { LinksService } from 'src/firebase/links/links.service';
+import { FirebaseLinkData } from 'src/firebase/realtime/links/interface/links.interface';
+import { LinksService } from 'src/firebase/realtime/links/links.service';
 import { ShopeeService } from 'src/shopee/shopee.service';
 import { ParsedMessage } from './interface/link-processor.interface';
 

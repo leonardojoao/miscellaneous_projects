@@ -5,21 +5,19 @@ import {
   HttpStatus,
   Post,
 } from '@nestjs/common';
-import { GroupsProcessorService } from './groups-processor.service';
-import { FirebaseGroupData } from 'src/firebase/groups/interface/groups.interface';
+import { RegisterService } from './register.service';
+import { FirebaseGroupData } from 'src/firebase/realtime/groups/interface/groups.interface';
 
 @Controller('groups-processor')
-export class GroupsProcessorController {
-  constructor(
-    private readonly groupsProcessorService: GroupsProcessorService,
-  ) {}
+export class RegisterController {
+  constructor(private readonly registerService: RegisterService) {}
 
   @Post()
   async createGroupProcessor(
     @Body() groupProcessorData: FirebaseGroupData,
   ): Promise<{ message: string }> {
     try {
-      await this.groupsProcessorService.saveGroupData(groupProcessorData);
+      await this.registerService.saveGroupData(groupProcessorData);
       return { message: 'Grupo criado com sucesso!' };
     } catch (error) {
       console.error('Erro ao processar o grupo', error.stack);
@@ -42,7 +40,7 @@ export class GroupsProcessorController {
 
     for (const group of groupProcessorData) {
       try {
-        await this.groupsProcessorService.saveGroupData(group);
+        await this.registerService.saveGroupData(group);
       } catch (error) {
         console.error(
           `Erro no grupo com idGroup "${group.idGroup}": ${error.message}`,

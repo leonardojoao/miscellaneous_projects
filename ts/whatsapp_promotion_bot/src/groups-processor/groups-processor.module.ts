@@ -1,12 +1,7 @@
 import { Module } from '@nestjs/common';
-import { FirebaseModule } from 'src/firebase/firebase.module';
-import { GroupsProcessorController } from './groups-processor.controller';
-import { GroupsProcessorService } from './groups-processor.service';
+import { RegisterModule } from './register/register.module';
 
 @Module({
-  imports: [FirebaseModule],
-  controllers: [GroupsProcessorController],
-  providers: [GroupsProcessorService],
-  exports: [GroupsProcessorService],
+  imports: [RegisterModule],
 })
 export class GroupsProcessorModule {}

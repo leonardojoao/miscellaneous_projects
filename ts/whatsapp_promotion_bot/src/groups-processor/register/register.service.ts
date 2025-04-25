@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { GroupsService } from 'src/firebase/groups/groups.service';
-import { FirebaseGroupData } from 'src/firebase/groups/interface/groups.interface';
+import { GroupsService } from 'src/firebase/realtime/groups/groups.service';
+import { FirebaseGroupData } from 'src/firebase/realtime/groups/interface/groups.interface';
 
 @Injectable()
-export class GroupsProcessorService {
+export class RegisterService {
   constructor(private readonly groupsService: GroupsService) {}
 
   async saveGroupData(data: FirebaseGroupData): Promise<void> {
