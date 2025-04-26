@@ -22,6 +22,7 @@ import { FirestoneModule } from './firestore/firestone.module';
     LinksService,
     ContactsService,
     GroupsService,
+    FirestoneModule,
   ],
 })
 export class FirebaseModule {}
