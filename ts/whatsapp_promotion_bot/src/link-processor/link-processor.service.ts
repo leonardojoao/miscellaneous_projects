@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { FirebaseLinkData } from 'src/firebase/realtime/links/interface/links.interface';
-import { LinksService } from 'src/firebase/realtime/links/links.service';
+import { FirestoneLinkData } from 'src/firebase/firestore/links/interface/links.interface';
+import { LinksService } from 'src/firebase/firestore/links/links.service';
 import { ShopeeService } from 'src/shopee/shopee.service';
 import { ParsedMessage } from './interface/link-processor.interface';
 
@@ -24,13 +24,15 @@ export class LinkProcessorService {
       if (!shopeeProduct)
         throw new Error('Não foi possível obter informações do produto.');
 
-      const linkData: FirebaseLinkData = {
+      const formattedLinkData: FirestoneLinkData = {
         link,
-        count: 0,
         category,
-        statusError: false,
+        count: 0,
+        countError: 0,
+        disabled: false,
       };
-      await this.linksService.saveLinkData(linkData);
+
+      await this.linksService.saveLinkData(formattedLinkData);
     } catch (error) {
       throw error;
     }
