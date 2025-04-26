@@ -13,25 +13,17 @@ export class LinksService {
   ) {}
 
   async saveLinkData(data: FirestoneLinkData): Promise<void> {
-    const { link, category } = data;
-
     try {
-      const data: FirestoneLinkData = {
-        link,
-        category,
-        count: 0,
-        countError: 0,
-        disabled: false,
-      };
-
       await this.firebaseApp
         .firestore()
         .collection(this.collectionName)
         .add(data);
-      console.log(`${Messages.SAVE_SUCCESS} /${this.collectionName}: ${link}`);
+      console.log(
+        `${Messages.SAVE_SUCCESS} /${this.collectionName}: ${data.link}`,
+      );
     } catch (error) {
       console.log(
-        `${Messages.SAVE_ERROR} /${this.collectionName}: ${link}`,
+        `${Messages.SAVE_ERROR} /${this.collectionName}: ${data.link}`,
         error.stack,
       );
       throw new Error(`${Messages.SAVE_ERROR}: ${error.message}`);
@@ -89,7 +81,7 @@ export class LinksService {
         .collection(this.collectionName)
         .where('category', '==', category)
         .where('disabled', '==', false)
-        .orderBy('countError', 'asc')
+        .orderBy('count', 'asc')
         .limit(3);
       const snapshot = await dataRef.get();
       if (snapshot.empty) {
