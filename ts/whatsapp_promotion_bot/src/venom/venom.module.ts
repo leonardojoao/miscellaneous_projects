@@ -5,5 +5,6 @@ import { VenomService } from './venom.service';
 @Module({
   imports: [ConfigModule],
   providers: [VenomService],
+  exports: [VenomService],
 })
 export class VenomModule {}
