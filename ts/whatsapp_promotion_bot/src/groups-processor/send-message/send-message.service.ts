@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FirestoneLinkData } from 'src/firebase/firestore/links/interface/links.interface';
 import { LinksService } from 'src/firebase/firestore/links/links.service';
 import { GroupsService } from 'src/firebase/realtime/groups/groups.service';
@@ -7,19 +7,13 @@ import { ShopeeService } from 'src/shopee/shopee.service';
 import { VenomService } from 'src/venom/venom.service';
 
 @Injectable()
-export class SendMessageService implements OnModuleInit {
+export class SendMessageService {
   constructor(
     private readonly groupsService: GroupsService,
     private readonly linksService: LinksService,
     private readonly shopeeService: ShopeeService,
     private readonly venomService: VenomService,
   ) {}
-
-  async onModuleInit() {
-    await new Promise((resolve) => setTimeout(resolve, 60000));
-    console.log('Inicinando processo de enviar mensagens nos grupos...');
-    this.process();
-  }
 
   async process() {
     try {
