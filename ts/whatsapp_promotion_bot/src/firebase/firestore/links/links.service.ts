@@ -83,12 +83,18 @@ export class LinksService {
         .where('disabled', '==', false)
         .orderBy('count', 'asc')
         .limit(3);
+
       const snapshot = await dataRef.get();
+
       if (snapshot.empty) {
         console.warn(`${Messages.FETCH_ALL_ERROR} /${this.collectionName}`);
         return [];
       }
-      return snapshot.docs.map((doc) => doc.data() as FirestoneLinkData);
+
+      return snapshot.docs.map((doc) => ({
+        ...(doc.data() as FirestoneLinkData),
+        id: doc.id,
+      }));
     } catch (error) {
       console.error(
         `${Messages.FETCH_ALL_ERROR} /${this.collectionName}`,
@@ -99,19 +105,17 @@ export class LinksService {
   }
 
   async updateLinkData(data: FirestoneLinkData): Promise<void> {
-    const { link, category } = data;
+    const { id } = data;
     try {
       const dataRef = this.firebaseApp
         .firestore()
         .collection(this.collectionName)
-        .doc(link);
-      await dataRef.update({ category });
-      console.log(
-        `${Messages.UPDATE_SUCCESS} /${this.collectionName}: ${link}`,
-      );
+        .doc(id);
+      await dataRef.update(data as any);
+      console.log(`${Messages.UPDATE_SUCCESS} /${this.collectionName}: ${id}`);
     } catch (error) {
       console.error(
-        `${Messages.UPDATE_ERROR} /${this.collectionName}: ${link}`,
+        `${Messages.UPDATE_ERROR} /${this.collectionName}: ${id}`,
         error.stack,
       );
       throw new Error(`${Messages.UPDATE_ERROR}: ${error.message}`);
