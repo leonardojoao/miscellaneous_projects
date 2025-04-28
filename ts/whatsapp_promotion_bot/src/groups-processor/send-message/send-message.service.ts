@@ -88,6 +88,13 @@ export class SendMessageService {
           );
         }
 
+        const updatedLink: FirestoneLinkData = {
+          ...link,
+          count: link.count + 1,
+        };
+
+        await this.linksService.updateLinkData(updatedLink);
+
         await new Promise((resolve) => setTimeout(resolve, 120000));
       }
     } catch (error) {
@@ -111,7 +118,7 @@ export class SendMessageService {
 
 ${this.getProductEmoji(linkData.productName)} ${linkData.productName}
 
-De R$ ${originalPrice} ❌
+De R$ ${originalPrice}
 
 Por *R$ ${discountedPrice.toFixed(2)}* (🔥 *${discountRate}% OFF*)
 
