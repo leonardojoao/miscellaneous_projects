@@ -19,7 +19,7 @@ export class SendMessageService {
   async process() {
     try {
       const groups: FirebaseGroupData[] =
-        await this.groupsService.getAllGroupsData();
+        await this.groupsService.getAllActiveGroupsData();
 
       const categories = Array.from(
         new Set(groups.map((group) => group.category)),
