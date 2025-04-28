@@ -34,7 +34,7 @@ export class NodeCronService implements OnModuleInit {
       console.log(`Iniciando processamento: ${new Date().toLocaleString()}`);
       this.sendMessageService.process();
     } catch (error) {
-      console.error('Erro no processamento', error.stack);
+      console.error('Erro no processamento', error.message);
     }
   }
 }
