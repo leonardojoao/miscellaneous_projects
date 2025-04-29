@@ -115,6 +115,35 @@ export class ContactsService {
     }
   }
 
+  async getAllAddContactsData(): Promise<FirebaseContactData[]> {
+    try {
+      const dataRef = ref(this.database, this.tableName);
+
+      const addContactsQuery = query(
+        dataRef,
+        orderByChild('add'),
+        equalTo(false),
+      );
+      const snapshot = await get(addContactsQuery);
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.entries(data).map(([id, value]: [string, any]) => ({
+          id,
+          ...value,
+        }));
+      } else {
+        console.warn(`${Messages.FETCH_ALL_ERROR} /${this.tableName}`);
+        return [];
+      }
+    } catch (error) {
+      console.error(
+        `${Messages.FETCH_ALL_ERROR} /${this.tableName}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ALL_ERROR}: ${error.message}`);
+    }
+  }
+
   async updateContactData(data: FirebaseContactData): Promise<void> {
     const { id, name, phone, category, add } = data;
     try {
