@@ -4,6 +4,7 @@ import {
   Database,
   equalTo,
   get,
+  limitToLast,
   orderByChild,
   push,
   query,
@@ -104,6 +105,68 @@ export class GroupsService {
         orderByChild('addContacts'),
         equalTo(true),
       );
+      const snapshot = await get(activeGroupsQuery);
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.entries(data).map(([id, value]: [string, any]) => ({
+          id,
+          ...value,
+        }));
+      } else {
+        console.warn(`${Messages.FETCH_ALL_ERROR} /${this.tableName}`);
+        return [];
+      }
+    } catch (error) {
+      console.error(
+        `${Messages.FETCH_ALL_ERROR} /${this.tableName}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ALL_ERROR}: ${error.message}`);
+    }
+  }
+
+  async getAllAddContactsGroupsData(): Promise<FirebaseGroupData[]> {
+    try {
+      const dataRef = ref(this.database, this.tableName);
+
+      const activeGroupsQuery = query(
+        dataRef,
+        orderByChild('addContacts'),
+        equalTo(true),
+      );
+      const snapshot = await get(activeGroupsQuery);
+
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.entries(data).map(([id, value]: [string, any]) => ({
+          id,
+          ...value,
+        }));
+      } else {
+        console.warn(`${Messages.FETCH_ALL_ERROR} /${this.tableName}`);
+        return [];
+      }
+    } catch (error) {
+      console.error(
+        `${Messages.FETCH_ALL_ERROR} /${this.tableName}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ALL_ERROR}: ${error.message}`);
+    }
+  }
+
+  async getLast30AddContactsGroups(): Promise<FirebaseGroupData[]> {
+    try {
+      const dataRef = ref(this.database, this.tableName);
+
+      const activeGroupsQuery = query(
+        dataRef,
+        orderByChild('addContacts'),
+        equalTo(true),
+        limitToLast(30),
+      );
+
       const snapshot = await get(activeGroupsQuery);
 
       if (snapshot.exists()) {
