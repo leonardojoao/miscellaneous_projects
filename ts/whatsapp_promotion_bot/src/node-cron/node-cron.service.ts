@@ -7,29 +7,29 @@ import { SendMessageService } from 'src/groups-processor/send-message/send-messa
 export class NodeCronService implements OnModuleInit {
   constructor(private readonly sendMessageService: SendMessageService) {}
 
-  onModuleInit() {
+  async onModuleInit() {
     // 06:45
     cron.schedule('45 6 * * *', () => {
-      this.execProcessing();
+      this.execProcessingToSendMessage();
     });
 
     // 11:55
     cron.schedule('55 11 * * *', () => {
-      this.execProcessing();
+      this.execProcessingToSendMessage();
     });
 
     // 17:55
     cron.schedule('55 17 * * *', () => {
-      this.execProcessing();
+      this.execProcessingToSendMessage();
     });
 
     // 20:00
     cron.schedule('0 20 * * *', () => {
-      this.execProcessing();
+      this.execProcessingToSendMessage();
     });
   }
 
-  execProcessing() {
+  execProcessingToSendMessage() {
     try {
       console.log(`Iniciando processamento: ${new Date().toLocaleString()}`);
       this.sendMessageService.process();
