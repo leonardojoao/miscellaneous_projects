@@ -30,7 +30,13 @@ export class GroupsService {
       const dataRef = ref(this.database, this.tableName);
       const newDataRef = push(dataRef);
 
-      await set(newDataRef, { name, idGroup, category, addContacts: true });
+      await set(newDataRef, {
+        name,
+        idGroup,
+        category,
+        addContacts: true,
+        publishMessage: true,
+      });
       console.log(`${Messages.SAVE_SUCCESS} /${this.tableName}: ${idGroup}`);
     } catch (error) {
       console.error(
@@ -102,7 +108,7 @@ export class GroupsService {
 
       const activeGroupsQuery = query(
         dataRef,
-        orderByChild('addContacts'),
+        orderByChild('publishMessage'),
         equalTo(true),
       );
       const snapshot = await get(activeGroupsQuery);

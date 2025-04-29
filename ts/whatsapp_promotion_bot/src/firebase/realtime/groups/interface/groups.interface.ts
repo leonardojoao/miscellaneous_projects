@@ -4,4 +4,5 @@ export interface FirebaseGroupData {
   idGroup: string;
   category: string;
   addContacts: boolean;
+  publishMessage?: boolean;
 }
