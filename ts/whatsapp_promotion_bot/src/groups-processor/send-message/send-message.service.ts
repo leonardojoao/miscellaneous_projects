@@ -21,12 +21,22 @@ export class SendMessageService {
       const groups: FirebaseGroupData[] =
         await this.groupsService.getAllActiveGroupsData();
 
+      if (groups.length === 0) {
+        console.log('Nenhum grupo para enviar mensagem');
+        return;
+      }
+
       const categories = Array.from(
         new Set(groups.map((group) => group.category)),
       );
 
       const linksArray: FirestoneLinkData[][] =
         await this.getLinksByCategory(categories);
+
+      if (linksArray.length === 0) {
+        console.log('Nenhum link para enviar mensagem');
+        return;
+      }
 
       for (const links of linksArray) {
         const group = groups.filter(
