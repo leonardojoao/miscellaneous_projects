@@ -16,7 +16,7 @@ export class SendMessageService {
     private readonly venomService: VenomService,
   ) {}
 
-  async process() {
+  async process(quantity: number) {
     try {
       const groups: FirebaseGroupData[] =
         await this.groupsService.getAllActiveGroupsData();
@@ -30,8 +30,10 @@ export class SendMessageService {
         new Set(groups.map((group) => group.category)),
       );
 
-      const linksArray: FirestoneLinkData[][] =
-        await this.getLinksByCategory(categories);
+      const linksArray: FirestoneLinkData[][] = await this.getLinksByCategory(
+        categories,
+        quantity,
+      );
 
       if (linksArray.length === 0) {
         console.log('Nenhum link para enviar mensagem');
@@ -58,13 +60,14 @@ export class SendMessageService {
 
   async getLinksByCategory(
     categories: string[],
+    quantity: number,
   ): Promise<FirestoneLinkData[][] | null> {
     try {
       const links: FirestoneLinkData[][] = [];
 
       for (const category of categories) {
         links.push(
-          await this.linksService.getLastThreeLowestByCategory(category),
+          await this.linksService.getNLowestByCategory(category, quantity),
         );
       }
       return links;

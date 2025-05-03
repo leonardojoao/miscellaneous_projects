@@ -104,6 +104,39 @@ export class LinksService {
     }
   }
 
+  async getNLowestByCategory(
+    category: string,
+    quantity: number = 3,
+  ): Promise<FirestoneLinkData[]> {
+    try {
+      const dataRef = this.firebaseApp
+        .firestore()
+        .collection(this.collectionName)
+        .where('category', '==', category)
+        .where('disabled', '==', false)
+        .orderBy('count', 'asc')
+        .limit(quantity);
+
+      const snapshot = await dataRef.get();
+
+      if (snapshot.empty) {
+        console.warn(`${Messages.FETCH_ALL_ERROR} /${this.collectionName}`);
+        return [];
+      }
+
+      return snapshot.docs.map((doc) => ({
+        ...(doc.data() as FirestoneLinkData),
+        id: doc.id,
+      }));
+    } catch (error) {
+      console.error(
+        `${Messages.FETCH_ALL_ERROR} /${this.collectionName}`,
+        error.stack,
+      );
+      throw new Error(`${Messages.FETCH_ALL_ERROR}: ${error.message}`);
+    }
+  }
+
   async updateLinkData(data: FirestoneLinkData): Promise<void> {
     const { id } = data;
     try {

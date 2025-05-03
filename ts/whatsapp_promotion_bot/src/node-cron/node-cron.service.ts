@@ -38,10 +38,10 @@ export class NodeCronService implements OnModuleInit {
     });
   }
 
-  execProcessingToSendMessage() {
+  execProcessingToSendMessage(quantity: number = 3) {
     try {
       console.log(`Iniciando processamento: ${new Date().toLocaleString()}`);
-      this.sendMessageService.process();
+      this.sendMessageService.process(quantity);
     } catch (error) {
       console.error('Erro no processamento', error.message);
     }
