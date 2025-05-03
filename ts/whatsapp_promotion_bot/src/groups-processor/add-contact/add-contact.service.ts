@@ -63,13 +63,13 @@ export class AddContactService {
         console.log(
           `Contato ${contact.name} adicionado ao grupo ${group.idGroup}, ${randomInterval}`,
         );
-        this.venomService.addContactToGroup(group.idGroup, contact.phone);
+        await this.venomService.addContactToGroup(group.idGroup, contact.phone);
 
         const updateContactData: FirebaseContactData = {
           ...contact,
           add: true,
         };
-        this.contactsService.updateContactData(updateContactData);
+        await this.contactsService.updateContactData(updateContactData);
       }
     } catch (error) {
       console.error('Erro ao adicionar contatos no grupo', error.stack);
