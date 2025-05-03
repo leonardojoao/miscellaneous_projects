@@ -22,14 +22,29 @@ export class NodeCronService implements OnModuleInit {
       this.execProcessingToSendMessage();
     });
 
+    // 10:00
+    cron.schedule('00 10 * * *', () => {
+      this.execProcessingToSendMessage(1);
+    });
+
     // 11:55
     cron.schedule('55 11 * * *', () => {
       this.execProcessingToSendMessage();
     });
 
+    // 15:00
+    cron.schedule('00 15 * * *', () => {
+      this.execProcessingToSendMessage(1);
+    });
+
     // 17:55
     cron.schedule('55 17 * * *', () => {
       this.execProcessingToSendMessage();
+    });
+
+    // 19:00
+    cron.schedule('00 19 * * *', () => {
+      this.execProcessingToSendMessage(1);
     });
 
     // 20:00
