@@ -83,8 +83,11 @@ export class SendMessageService {
     links: FirestoneLinkData[],
     groups: FirebaseGroupData[],
   ): Promise<void> {
+    let currentLink: FirestoneLinkData | null = null;
+
     try {
       for (const link of links) {
+        currentLink = link;
         const linkData: ShopeeProduct =
           await this.shopeeService.getShopeeProduct(link.link);
 
@@ -108,7 +111,15 @@ export class SendMessageService {
         await new Promise((resolve) => setTimeout(resolve, 120000));
       }
     } catch (error) {
-      console.error('Erro ao enviar mensagem', error.stack);
+      const updatedLink: FirestoneLinkData = {
+        ...currentLink,
+        countError: currentLink.countError + 1,
+        disabled: true,
+      };
+
+      await this.linksService.updateLinkData(updatedLink);
+
+      console.error('Erro ao enviar mensagem', error.stack, updatedLink);
       throw new Error(`Erro ao enviar mensagem: ${error.message}`);
     }
   }
