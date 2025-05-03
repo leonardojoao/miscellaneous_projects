@@ -13,7 +13,7 @@ export class AddContactService {
     private readonly venomService: VenomService,
   ) {}
 
-  async process() {
+  async process(withoutInterval: boolean = false) {
     try {
       const contacts: FirebaseContactData[] =
         await this.contactsService.getLast30AddContactsData();
@@ -31,7 +31,7 @@ export class AddContactService {
         return;
       }
 
-      this.addContactsInGroup(contacts, groups);
+      this.addContactsInGroup(contacts, groups, withoutInterval);
     } catch (error) {
       console.error(
         'Erro no processamento de adicionar contatos no grupo',
@@ -46,6 +46,7 @@ export class AddContactService {
   async addContactsInGroup(
     contacts: FirebaseContactData[],
     groups: FirebaseGroupData[],
+    withoutInterval: boolean = false,
   ) {
     try {
       for (const contact of contacts) {
@@ -53,17 +54,19 @@ export class AddContactService {
           (group) => group.category === contact.category,
         );
 
+        if (!withoutInterval) {
+          const randomInterval =
+            Math.floor(Math.random() * (300000 - 120000 + 1)) + 120000;
+
+          // Aguardar o intervalo antes de adicionar o próximo contato
+          await new Promise((resolve) => setTimeout(resolve, randomInterval));
+        }
         // Intervalo aleatório entre 2 a 5 minutos (em milissegundos)
-        const randomInterval =
-          Math.floor(Math.random() * (300000 - 120000 + 1)) + 120000;
 
-        // Aguardar o intervalo antes de adicionar o próximo contato
-        await new Promise((resolve) => setTimeout(resolve, randomInterval));
-
-        console.log(
-          `Contato ${contact.name} adicionado ao grupo ${group.idGroup}, ${randomInterval}`,
-        );
         await this.venomService.addContactToGroup(group.idGroup, contact.phone);
+        console.log(
+          `Contato ${contact.name} adicionado ao grupo ${group.idGroup}`,
+        );
 
         const updateContactData: FirebaseContactData = {
           ...contact,
