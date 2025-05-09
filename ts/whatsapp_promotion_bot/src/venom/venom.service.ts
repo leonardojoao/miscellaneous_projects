@@ -18,7 +18,7 @@ export class VenomService implements OnModuleInit {
         browserArgs: ['--no-sandbox'],
       });
 
-      this.listenMessages();
+      // this.listenMessages();
     } catch (err) {
       console.error('Erro ao iniciar o Venom Bot', err);
     }
@@ -63,7 +63,7 @@ export class VenomService implements OnModuleInit {
   async addContactToGroup(groupId: string, contactId: string) {
     try {
       await this.client.addParticipant(groupId, contactId);
-      this.logger.log(`Contato ${contactId} adicionado ao grupo`);
+      console.log(`Contato ${contactId} adicionado ao grupo`);
     } catch (error) {
       console.error(`Erro ao adicionar ${contactId}`, error);
       throw new Error(`Erro ao adicionar ${contactId} ${error}`);
