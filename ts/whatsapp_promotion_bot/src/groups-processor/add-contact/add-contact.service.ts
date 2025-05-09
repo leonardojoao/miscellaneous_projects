@@ -13,10 +13,10 @@ export class AddContactService {
     private readonly venomService: VenomService,
   ) {}
 
-  async process(withoutInterval: boolean = false) {
+  async process(withoutInterval: boolean = false, quantity: number) {
     try {
       const contacts: FirebaseContactData[] =
-        await this.contactsService.getLast30AddContactsData();
+        await this.contactsService.getNLowestAddContactsData(quantity);
 
       if (contacts.length === 0) {
         console.log('Nenhum contato para adicionar no grupo');
