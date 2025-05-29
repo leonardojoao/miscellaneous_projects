@@ -12,7 +12,7 @@ import connectionAPI from '../functions/connection/connectionAPI';
 import { useGlobalContext } from './useGlobalContext';
 
 export const useRequests = () => {
-  const { setNotification } = useGlobalContext();
+  const { setNotification, setUser } = useGlobalContext();
   const navigator = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -23,6 +23,7 @@ export const useRequests = () => {
     await connectionAPI
       .post<AuthType>(API_URL_AUTH, body)
       .then((result) => {
+        setUser(result.user);
         setAuthorizationToken(result.accessToken);
         setNotification(SUCCESS_MESSAGE.LOGIN, 'success', '');
         navigator(ProductRoutesEnum.PRODUCT);
