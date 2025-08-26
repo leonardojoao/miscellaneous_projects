@@ -81,6 +81,35 @@ export class VideoProcessingService {
     });
   }
 
+  async getAudioDuration(audioPath: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(audioPath, (err, metadata) => {
+        if (err) return reject(err);
+        const duration = metadata.format.duration;
+        if (duration === undefined) {
+          return reject(new Error('Could not determine audio duration'));
+        }
+        resolve(duration);
+      });
+    });
+  }
+
+  async mergeAudioWithVideo(videoPath: string, audioPath: string, outputPath: string) {
+    return new Promise<void>((resolve, reject) => {
+      ffmpeg()
+        .input(videoPath)
+        .input(audioPath)
+        .outputOptions([
+          '-c:v copy',   // mantém o vídeo sem recodificar
+          '-c:a aac',    // converte o áudio para AAC
+          '-shortest',   // garante que não ultrapasse o tamanho do áudio/vídeo
+        ])
+        .save(outputPath)
+        .on('end', () => resolve())
+        .on('error', reject);
+    });
+  }
+
   cleanupSegments(paths: string[]) {
     paths.forEach(file => fs.existsSync(file) && fs.unlinkSync(file));
   }
