@@ -19,7 +19,7 @@ export class ProcessorService implements OnModuleInit {
     await this.processAllProducts(resolution);
   }
 
-  private async processAllProducts(resolution: string) {
+  async processAllProducts(resolution: string = '1080x1920') {
     const productDirs = fs
       .readdirSync(this.basePath)
       .filter((name) =>
