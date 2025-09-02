@@ -5,21 +5,17 @@ import * as path from 'path';
 import { spawn } from 'child_process';
 import { VideoProcessingService } from '../video-processing/video-processing.service';
 
+import { ProcessOptions } from './interfaces/process-options.interface';
+
 @Injectable()
-export class ProcessorService implements OnModuleInit {
+export class ProcessorService {
   private readonly basePath = path.join(__dirname, '..', '..', 'products');
   private readonly pythonPath = path.join(__dirname, '..', '..', 'venv', 'bin', 'python');
   private readonly subtitleScript = path.join(process.cwd(), 'src', 'scripts', 'add_subtitles.py');
 
-
   constructor(private readonly videoService: VideoProcessingService) {}
 
-  async onModuleInit() {
-    const resolution = '1080x1920';
-    await this.processAllProducts(resolution);
-  }
-
-  async processAllProducts(resolution: string = '1080x1920') {
+  async processAllProducts({resolution = '1080x1920', subtitle = false}: ProcessOptions = {}) {
     const productDirs = fs
       .readdirSync(this.basePath)
       .filter((name) =>
@@ -72,7 +68,7 @@ export class ProcessorService implements OnModuleInit {
 
         console.log(`✅ Final video created: ${finalOutput}`);
 
-        if(path.parse(audio).name === 'curto') {
+        if(path.parse(audio).name === 'curto' && subtitle) {
           // 🚀 Agora roda o Python para adicionar legendas
           const subtitledOutput = path.join(dirPath, `${path.parse(audio).name}-legendado.mp4`);
           await this.runPythonScript(finalOutput, subtitledOutput);

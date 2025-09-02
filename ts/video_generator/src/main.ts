@@ -10,40 +10,66 @@ async function bootstrap() {
   dotenv.config(); // carrega o .env
 
   const app = await NestFactory.create(AppModule);
+
   const processorService = app.get(ProcessorService);
+  const dirService = app.get(DirectoryService);
 
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-  console.log('\n📋 Menu de Opções');
-  console.log('1 - Processar todos os produtos');
-  console.log('2 - Sair\n');
+  async function showMenu() {
+    console.log('\n📋 Menu de Opções');
+    console.log('1 - Processar todos os produtos sem legendas');
+    console.log('2 - Processar todos os produtos com legendas');
+    console.log('8 - Criar diretórios para um mês/ano');
+    console.log('9 - Sair\n');
 
-  rl.question('Digite a opção: ', async (answer) => {
-    switch (answer) {
-      case '1':
-        await processorService.processAllProducts();
-        break;
-      case '2':
-        console.log('👋 Saindo...');
-        break;
-      default:
-        console.log('❌ Opção inválida');
-    }
+    rl.question('Digite a opção: ', async (answer) => {
+      switch (answer) {
+        case '1':
+          await processorService.processAllProducts();
+          break;
+        case '2':
+          await processorService.processAllProducts({subtitle: true});
+          break;
+        case '8':
+          rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
+            rl.question('👉 Digite o ano (ex: 2025): ', (yearInput) => {
+              try {
+                const month = parseInt(monthInput, 10);
+                const year = parseInt(yearInput, 10);
 
-    rl.close();
-    await app.close();
-  });
+                const dirs = dirService.createDirectoriesForMonthAndYear(
+                  month,
+                  year,
+                );
 
-  // const dirService = app.get(DirectoryService);
+                console.log('📂 Diretórios criados:', dirs);
+              } catch (err) {
+                console.error('❌ Erro:', err.message);
+              }
 
-  // Exemplo: criar diretórios para Setembro de 2025
-  // const dirs = dirService.createDirectoriesForMonthAndYear(9, 2025);
+              // volta para o menu
+              showMenu();
+            });
+          });
+          return; // evita cair no showMenu duplicado
+        case '9':
+          console.log('👋 Saindo...');
+          rl.close();
+          await app.close();
+          return;
+        default:
+          console.log('❌ Opção inválida');
+      }
 
-  // console.log('📂 Diretórios criados:', dirs);
+      showMenu(); // mostra o menu novamente após a ação
+    });
+  }
 
-  // await app.listen(process.env.PORT ?? 3000);
+  showMenu(); // inicia o menu
 }
+
 bootstrap();
