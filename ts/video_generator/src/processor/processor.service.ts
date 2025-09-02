@@ -2,11 +2,15 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import { spawn } from 'child_process';
 import { VideoProcessingService } from '../video-processing/video-processing.service';
 
 @Injectable()
 export class ProcessorService implements OnModuleInit {
   private readonly basePath = path.join(__dirname, '..', '..', 'products');
+  private readonly pythonPath = path.join(__dirname, '..', '..', 'venv', 'bin', 'python');
+  private readonly subtitleScript = path.join(process.cwd(), 'src', 'scripts', 'add_subtitles.py');
+
 
   constructor(private readonly videoService: VideoProcessingService) {}
 
@@ -41,7 +45,7 @@ export class ProcessorService implements OnModuleInit {
 
       for (const audio of audios) {
         const audioDuration = await this.videoService.getAudioDuration(audio);
-        const segmentsNeeded = Math.ceil(audioDuration / 3); // cortes de 3s
+        const segmentsNeeded = Math.ceil(audioDuration / 3);
 
         console.log(`🎵 Audio: ${path.basename(audio)} (${audioDuration.toFixed(1)}s)`);
         console.log(`Segments needed: ${segmentsNeeded}`);
@@ -68,7 +72,28 @@ export class ProcessorService implements OnModuleInit {
 
         console.log(`✅ Final video created: ${finalOutput}`);
 
+        if(path.parse(audio).name === 'curto') {
+          // 🚀 Agora roda o Python para adicionar legendas
+          const subtitledOutput = path.join(dirPath, `${path.parse(audio).name}-legendado.mp4`);
+          await this.runPythonScript(finalOutput, subtitledOutput);
+  
+          console.log(`🎉 Video with subtitles created: ${subtitledOutput}`);
+        }
       }
     }
+  }
+
+  private runPythonScript(input: string, output: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const process = spawn(this.pythonPath, [this.subtitleScript, input, output]);
+
+      process.stdout.on('data', (data) => console.log(`PYTHON: ${data}`));
+      process.stderr.on('data', (data) => console.error(`PYTHON ERR: ${data}`));
+
+      process.on('close', (code) => {
+        if (code === 0) resolve();
+        else reject(new Error(`Python exited with code ${code}`));
+      });
+    });
   }
 }
