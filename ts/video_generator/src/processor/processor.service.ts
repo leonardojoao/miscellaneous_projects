@@ -91,6 +91,35 @@ export class ProcessorService {
     }
   }
 
+  async getAllFinalVideos(): Promise<string[]> {
+    const finalVideos: string[] = [];
+
+    const dateDirs = fs
+      .readdirSync(this.basePath)
+      .filter((name) => fs.statSync(path.join(this.basePath, name)).isDirectory());
+
+    for (const dateDir of dateDirs) {
+      const datePath = path.join(this.basePath, dateDir);
+
+      const productDirs = fs
+        .readdirSync(datePath)
+        .filter((name) => fs.statSync(path.join(datePath, name)).isDirectory());
+
+      for (const productDir of productDirs) {
+        const dirPath = path.join(datePath, productDir);
+
+        const videos = fs
+          .readdirSync(dirPath)
+          .filter((f) => f.endsWith('-final.mp4'))
+          .map((f) => path.join(dirPath, f));
+
+        finalVideos.push(...videos);
+      }
+    }
+
+    return finalVideos;
+  }
+
   private runPythonScript(input: string, output: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const process = spawn(this.pythonPath, [this.subtitleScript, input, output]);

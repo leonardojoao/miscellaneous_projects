@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DirectoryService } from './directory/directory.service';
 import { ProcessorService } from './processor/processor.service';
+import { uploadAllVideos } from './youtube/youtube-utils';
+import { YoutubeUploadService } from './youtube/youtube-upload.service';
 
 import * as readline from 'readline';
 import * as dotenv from 'dotenv';
@@ -13,6 +15,7 @@ async function bootstrap() {
 
   const processorService = app.get(ProcessorService);
   const dirService = app.get(DirectoryService);
+  const youtubeService = app.get(YoutubeUploadService);
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -23,6 +26,7 @@ async function bootstrap() {
     console.log('\n📋 Menu de Opções');
     console.log('1 - Processar todos os produtos sem legendas');
     console.log('2 - Processar todos os produtos com legendas');
+    console.log('7 - (Futuro) Enviar todos os vídeos para o YouTube');
     console.log('8 - Criar diretórios para um mês/ano');
     console.log('9 - Sair\n');
 
@@ -34,6 +38,9 @@ async function bootstrap() {
         case '2':
           await processorService.processAllProducts({subtitle: true});
           break;
+        case '7':
+          await uploadAllVideos(processorService, youtubeService);
+        break;
         case '8':
           rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
             rl.question('👉 Digite o ano (ex: 2025): ', (yearInput) => {
