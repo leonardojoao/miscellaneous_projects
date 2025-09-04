@@ -1,9 +1,10 @@
 // src/processor/processor.service.ts
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
 import { VideoProcessingService } from '../video-processing/video-processing.service';
+import { ShopeeAffiliateService } from '../shopee/shopee.service';
 
 import { ProcessOptions } from './interfaces/process-options.interface';
 
@@ -13,7 +14,11 @@ export class ProcessorService {
   private readonly pythonPath = path.join(__dirname, '..', '..', 'venv', 'bin', 'python');
   private readonly subtitleScript = path.join(process.cwd(), 'src', 'scripts', 'add_subtitles.py');
 
-  constructor(private readonly videoService: VideoProcessingService) {}
+  constructor(
+    private readonly videoService: VideoProcessingService,
+    private readonly shopeeService: ShopeeAffiliateService,
+  ) { }
+
 
   async processAllProducts({ resolution = '1080x1920', subtitle = false }: ProcessOptions = {}) {
     const dateDirs = fs
@@ -35,6 +40,32 @@ export class ProcessorService {
 
       for (const productDir of productDirs) {
         const dirPath = path.join(datePath, productDir);
+
+        // ------------------------------------------------------------------------------
+        // Integração com Shopee para obter detalhes do produto
+        // ------------------------------------------------------------------------------
+        const link = await this.getLinkFromDir(dirPath);
+
+        if (link) {
+          const dataProduct = await this.shopeeService.getProductOfferByUrl(link);
+
+          if (dataProduct?.nodes?.length) {
+            const offerLink = dataProduct.nodes[0].offerLink;
+            const offerFile = path.join(dirPath, 'offer_link.txt');
+
+            if (offerLink) {
+              fs.writeFileSync(offerFile, offerLink, 'utf-8');
+            } else {
+              console.warn(`⚠️ Nenhum offerLink encontrado para ${dirPath}`);
+            }
+          }
+
+          console.log('✅ Detalhes do produto obtidos');
+        }
+
+        // ------------------------------------------------------------------------------
+        // Processamento de vídeos e áudios
+        // ------------------------------------------------------------------------------
 
         const videos = fs
           .readdirSync(dirPath)
@@ -89,6 +120,24 @@ export class ProcessorService {
         }
       }
     }
+  }
+
+  async getLinkFromDir(dirPath: string): Promise<string | null> {
+    const linkFile = path.join(dirPath, 'link.txt');
+
+    if (!fs.existsSync(linkFile)) {
+      console.warn(`⚠️ Nenhum link.txt encontrado em ${dirPath}`);
+      return null;
+    }
+
+    const content = fs.readFileSync(linkFile, 'utf-8').trim();
+
+    if (!content) {
+      console.warn(`⚠️ link.txt vazio em ${dirPath}`);
+      return null;
+    }
+
+    return content;
   }
 
   async getAllFinalVideos(): Promise<string[]> {

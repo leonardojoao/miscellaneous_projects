@@ -4,6 +4,7 @@ import { DirectoryService } from './directory/directory.service';
 import { ProcessorService } from './processor/processor.service';
 import { uploadAllVideos } from './youtube/youtube-utils';
 import { YoutubeUploadService } from './youtube/youtube-upload.service';
+import { ShopeeAffiliateService } from './shopee/shopee.service';
 
 import * as readline from 'readline';
 import * as dotenv from 'dotenv';
@@ -16,6 +17,9 @@ async function bootstrap() {
   const processorService = app.get(ProcessorService);
   const dirService = app.get(DirectoryService);
   const youtubeService = app.get(YoutubeUploadService);
+  const shopeeService = app.get(ShopeeAffiliateService);
+
+  await shopeeService.init(); // 🔑 força inicialização aqui
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -36,11 +40,11 @@ async function bootstrap() {
           await processorService.processAllProducts();
           break;
         case '2':
-          await processorService.processAllProducts({subtitle: true});
+          await processorService.processAllProducts({ subtitle: true });
           break;
         case '7':
           await uploadAllVideos(processorService, youtubeService);
-        break;
+          break;
         case '8':
           rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
             rl.question('👉 Digite o ano (ex: 2025): ', (yearInput) => {
