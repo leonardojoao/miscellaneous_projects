@@ -77,6 +77,25 @@ export class ProcessorService {
           .filter((f) => f.endsWith('.mp4'))
           .map((f) => path.join(dirPath, f));
 
+        // ------------------------------------------------------------------------------
+        // Verifica se já existe vídeo final
+        // ------------------------------------------------------------------------------
+        
+        const existingFinals = [
+          path.join(dirPath, "video-audio_curto-final.mp4"),
+          path.join(dirPath, "video-audio_longo-final.mp4"),
+        ];
+
+        // Verifica se algum já existe
+        const alreadyExists = existingFinals.some((file) => fs.existsSync(file));
+
+        if (alreadyExists) {
+          console.log("✅ Já existe vídeo final, pulando processamento...");
+          continue;
+        }
+
+        // ------------------------------------------------------------------------------
+
         const audios = fs
           .readdirSync(dirPath)
           .filter((f) => f.endsWith('.mp3'))
