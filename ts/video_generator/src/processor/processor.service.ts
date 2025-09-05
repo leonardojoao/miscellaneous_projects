@@ -124,7 +124,7 @@ export class ProcessorService {
 
           const finalOutput = path.join(
             dirPath,
-            `${path.parse(audio).name}-final.mp4`,
+            `video-${path.parse(audio).name}-final.mp4`,
           );
 
           await this.videoService.mergeAudioWithVideo(tempVideo, audio, finalOutput);
@@ -132,9 +132,9 @@ export class ProcessorService {
 
           console.log(`✅ Final video created: ${finalOutput}`);
 
-          if (path.parse(audio).name === 'curto' && subtitle) {
+          if (path.parse(audio).name === 'audio_curto' && subtitle) {
             // 🚀 Agora roda o Python para adicionar legendas
-            const subtitledOutput = path.join(dirPath, `${path.parse(audio).name}-legendado.mp4`);
+            const subtitledOutput = path.join(dirPath, `video-${path.parse(audio).name}-legendado.mp4`);
             await this.runPythonScript(finalOutput, subtitledOutput);
 
             console.log(`🎉 Video with subtitles created: ${subtitledOutput}`);
