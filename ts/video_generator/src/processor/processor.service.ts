@@ -11,8 +11,10 @@ import { ProcessOptions } from './interfaces/process-options.interface';
 @Injectable()
 export class ProcessorService {
   private readonly basePath = path.join(__dirname, '..', '..', 'products');
-  private readonly pythonPath = path.join(__dirname, '..', '..', 'venv', 'bin', 'python');
+  private readonly pythonPath = path.join(__dirname, '..', '..', 'venv-1.2', 'bin', 'python');
   private readonly subtitleScript = path.join(process.cwd(), 'src', 'scripts', 'add_subtitles.py');
+  private readonly soundTextScript = path.join(process.cwd(), 'src', 'scripts', 'generate_text_for_sound.py');
+  private readonly soundAudioScript = path.join(process.cwd(), 'src', 'scripts', 'generate_sound_for_product.py');
 
   constructor(
     private readonly videoService: VideoProcessingService,
@@ -40,6 +42,7 @@ export class ProcessorService {
 
       for (const productDir of productDirs) {
         const dirPath = path.join(datePath, productDir);
+        let productName = ''
 
         // ------------------------------------------------------------------------------
         // Integração com Shopee para obter detalhes do produto
@@ -53,6 +56,8 @@ export class ProcessorService {
             const offerLink = dataProduct.nodes[0].offerLink;
             const offerFile = path.join(dirPath, 'offer_link.txt');
 
+            productName = dataProduct.nodes[0].productName || productDir;
+
             if (offerLink) {
               fs.writeFileSync(offerFile, offerLink, 'utf-8');
             } else {
@@ -60,7 +65,7 @@ export class ProcessorService {
             }
           }
 
-          console.log('✅ Detalhes do produto obtidos');
+          console.log('✅ Detalhes do produto obtidos', dataProduct?.nodes?.[0]);
         }
 
         // ------------------------------------------------------------------------------
@@ -76,6 +81,23 @@ export class ProcessorService {
           .readdirSync(dirPath)
           .filter((f) => f.endsWith('.mp3'))
           .map((f) => path.join(dirPath, f));
+
+        if (audios.length === 0) {
+          console.log(`⚠️ Nenhum áudio encontrado em ${dirPath}, gerando...`);
+
+          await this.generateTextForAudiosToProduct(dirPath, productName);
+
+          await this.generateAudiosToProduct(dirPath);
+          console.log('✅ Áudios gerados com sucesso');
+          
+          // após gerar os áudios, atualiza o array
+          audios.push(
+            ...fs
+              .readdirSync(dirPath)
+              .filter((f) => f.endsWith('.mp3'))
+              .map((f) => path.join(dirPath, f))
+          );
+        }
 
         console.log('🎬 Processing product...');
         console.log(`📂 Date: ${dateDir} | 🎬 Product: ${productDir}`);
@@ -138,6 +160,46 @@ export class ProcessorService {
     }
 
     return content;
+  }
+
+  private async generateTextForAudiosToProduct(dirPath: string, productName: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      console.log(`🚀 Executando script Python para gerar textos para os áudios em ${dirPath}`);
+
+      const pythonProcess = spawn(this.pythonPath, [this.soundTextScript, dirPath, productName]);
+
+      pythonProcess.stdout.on('data', (data) => console.log(`PYTHON: ${data}`));
+      pythonProcess.stderr.on('data', (data) => console.error(`PYTHON ERR: ${data}`));
+
+      pythonProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log(`✅ Textos gerados com sucesso em ${dirPath}`);
+          resolve();
+        } else {
+          reject(new Error(`Python exited with code ${code}`));
+        }
+      });
+    });
+  }
+
+  private async generateAudiosToProduct(dirPath: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      console.log(`🚀 Executando script Python para os áudios em ${dirPath}`);
+
+      const pythonProcess = spawn(this.pythonPath, [this.soundAudioScript, dirPath]);
+
+      pythonProcess.stdout.on('data', (data) => console.log(`PYTHON: ${data}`));
+      pythonProcess.stderr.on('data', (data) => console.error(`PYTHON ERR: ${data}`));
+
+      pythonProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log(`✅ 'Audios gerados com sucesso em ${dirPath}`);
+          resolve();
+        } else {
+          reject(new Error(`Python exited with code ${code}`));
+        }
+      });
+    });
   }
 
   async getAllFinalVideos(): Promise<string[]> {
