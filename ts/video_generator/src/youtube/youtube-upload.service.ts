@@ -22,7 +22,13 @@ export class YoutubeUploadService {
     });
   }
 
-  async uploadVideo(filePath: string, title: string, description: string, tags: string[] = []) {
+  async uploadVideo(
+    filePath: string,
+    title: string,
+    description: string,
+    tags: string[] = [],
+    publishAt?: Date // se passar uma data, o vídeo será agendado
+  ) {
     const youtube = google.youtube({
       version: 'v3',
       auth: this.oauth2Client,
@@ -41,7 +47,10 @@ export class YoutubeUploadService {
             categoryId: '22',
           },
           status: {
-            privacyStatus: 'unlisted', // public | unlisted | private
+            privacyStatus: publishAt ? 'private' : 'unlisted', // se tiver data, deixa private
+            ...(publishAt
+              ? { publishAt: publishAt.toISOString() } // agenda a publicação
+              : {}),
           },
         },
         media: {
@@ -49,7 +58,14 @@ export class YoutubeUploadService {
         },
       });
 
-      this.logger.log(`✅ Upload concluído! Video ID: ${res.data.id}`);
+      if (publishAt) {
+        this.logger.log(
+          `✅ Upload concluído! Video ID: ${res.data.id} | Agendado para: ${publishAt.toISOString()}`
+        );
+      } else {
+        this.logger.log(`✅ Upload concluído! Video ID: ${res.data.id}`);
+      }
+
       return res.data;
     } catch (err) {
       this.logger.error('❌ Erro no upload para o YouTube', err);

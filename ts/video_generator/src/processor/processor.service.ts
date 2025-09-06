@@ -240,7 +240,11 @@ export class ProcessorService {
 
         const videos = fs
           .readdirSync(dirPath)
-          .filter((f) => f.endsWith('-final.mp4'))
+          .filter(
+            (f) =>
+              f === "video-audio_longo-final.mp4" ||
+              f === "video-audio_curto-legendado.mp4"
+          )
           .map((f) => path.join(dirPath, f));
 
         finalVideos.push(...videos);
