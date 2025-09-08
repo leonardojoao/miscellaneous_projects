@@ -48,22 +48,36 @@ async function bootstrap() {
         case '8':
           rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
             rl.question('👉 Digite o ano (ex: 2025): ', (yearInput) => {
-              try {
-                const month = parseInt(monthInput, 10);
-                const year = parseInt(yearInput, 10);
+              rl.question('👉 Digite a quantidade de produtos: ', (countInput) => {
+                try {
+                  const month = parseInt(monthInput, 10);
+                  const year = parseInt(yearInput, 10);
+                  const count = parseInt(countInput, 10);
 
-                const dirs = dirService.createDirectoriesForMonthAndYear(
-                  month,
-                  year,
-                );
+                  if (isNaN(month) || isNaN(year) || isNaN(count)) {
+                    throw new Error('Entrada inválida. Use números válidos.');
+                  }
 
-                console.log('📂 Diretórios criados:', dirs);
-              } catch (err) {
-                console.error('❌ Erro:', err.message);
-              }
+                  if (count < 1) {
+                    throw new Error('A quantidade de produtos deve ser pelo menos 1.');
+                  }
 
-              // volta para o menu
-              showMenu();
+                  // cria os diretórios e copia os produtos
+  
+                  const dirs = dirService.createDirectoriesForMonthAndYear(
+                    month,
+                    year,
+                    count,
+                  );
+  
+                  console.log('📂 Diretórios criados:', dirs);
+                } catch (err) {
+                  console.error('❌ Erro:', err.message);
+                }
+  
+                // volta para o menu
+                showMenu();
+              });
             });
           });
           return; // evita cair no showMenu duplicado
