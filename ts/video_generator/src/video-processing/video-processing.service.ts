@@ -12,24 +12,23 @@ export class VideoProcessingService {
   async createRandomSegmentsFromVideos(
     videoPaths: string[],
     resolution: string,
-    segmentDuration: number,
     segmentsNeeded: number,
     outputDir: string,
+    segmentDurations?: number[],
   ): Promise<string[]> {
     const segments: string[] = [];
 
     for (let i = 0; i < segmentsNeeded; i++) {
       const randomVideo = videoPaths[Math.floor(Math.random() * videoPaths.length)];
-
       const duration = await this.getVideoDuration(randomVideo);
 
+      // usa duração da lista (se fornecida) ou sorteia
+      const segmentDuration = segmentDurations?.[i] ?? Math.floor(Math.random() * (7 - 3 + 1)) + 3;
 
-      // Define o startTime para garantir que o segmento caiba dentro do vídeo
       const maxStartTime = Math.max(0, duration - segmentDuration);
       const startTime = Math.random() * maxStartTime;
 
       const output = path.join(outputDir, `segment-${Date.now()}-${i}.mp4`);
-      // const startTime = Math.floor(Math.random() * 30); // TODO: melhorar com duração real do vídeo
 
       await new Promise<void>((resolve, reject) => {
         ffmpeg(randomVideo)

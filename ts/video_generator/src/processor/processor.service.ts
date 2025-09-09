@@ -125,17 +125,26 @@ export class ProcessorService {
 
         for (const audio of audios) {
           const audioDuration = await this.videoService.getAudioDuration(audio);
-          const segmentsNeeded = Math.ceil(audioDuration / 3);
+
+          // cria lista de durações até cobrir o áudio
+          const segmentDurations: number[] = [];
+          let total = 0;
+          while (total < audioDuration) {
+            const d = Math.floor(Math.random() * (7 - 3 + 1)) + 3;
+            segmentDurations.push(d);
+            total += d;
+          }
 
           console.log(`🎵 Audio: ${path.basename(audio)} (${audioDuration.toFixed(1)}s)`);
-          console.log(`Segments needed: ${segmentsNeeded}`);
+          console.log(`Segment durations: [${segmentDurations.join(', ')}]`);
+          console.log(`Total video length: ${total}s`);
 
           const segments = await this.videoService.createRandomSegmentsFromVideos(
             videos,
             resolution,
-            3,
-            segmentsNeeded,
+            segmentDurations.length, // quantos segmentos serão gerados
             dirPath,
+            segmentDurations, // <<< novo parâmetro
           );
 
           const tempVideo = path.join(dirPath, `temp-video-${Date.now()}.mp4`);
