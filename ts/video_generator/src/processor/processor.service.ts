@@ -6,11 +6,12 @@ import { spawn } from 'child_process';
 import { VideoProcessingService } from '../video-processing/video-processing.service';
 import { ShopeeAffiliateService } from '../shopee/shopee.service';
 
-import { ProcessOptions } from './interfaces/process-options.interface';
+import { ProcessOptions, ValidationResult } from './interfaces/process-options.interface';
 
 @Injectable()
 export class ProcessorService {
   private readonly basePath = path.join(__dirname, '..', '..', 'products');
+  private readonly productLibraryPath = path.join(__dirname, '..', '..', 'product_library');
   private readonly pythonPath = path.join(__dirname, '..', '..', 'venv-1.2', 'bin', 'python');
   private readonly subtitleScript = path.join(process.cwd(), 'src', 'scripts', 'add_subtitles.py');
   private readonly soundTextScript = path.join(process.cwd(), 'src', 'scripts', 'generate_text_for_sound.py');
@@ -162,6 +163,46 @@ export class ProcessorService {
       }
     }
   }
+
+  async validateAllLinks(): Promise<ValidationResult> {
+    const result: ValidationResult = { valid: [], invalid: [] };
+
+    const dateDirs = fs
+      .readdirSync(this.productLibraryPath)
+      .filter((name) => fs.statSync(path.join(this.productLibraryPath, name)).isDirectory());
+
+    console.log(`📊 Iniciando validação de ${dateDirs.length} produtos...`);
+
+    for (const dateDir of dateDirs) {
+      const datePath = path.join(this.productLibraryPath, dateDir);
+
+      const productDirs = fs
+        .readdirSync(datePath)
+        .filter((name) => fs.statSync(path.join(datePath, name)).isDirectory());
+
+      for (const productDir of productDirs) {
+        const dirPath = path.join(datePath, productDir);
+        const link = await this.getLinkFromDir(dirPath);
+
+        if (link) {
+          const isValid = await this.shopeeService.validateProductLink(link);
+
+          if (isValid) {
+            result.valid.push(link);
+          } else {
+            result.invalid.push(link);
+          }
+        }
+      }
+    }
+
+    console.log(`\n📊 Validação concluída:`);
+    console.log(`✅ Válidos: ${result.valid.length}`);
+    console.log(`❌ Inválidos: ${result.invalid.length}`);
+
+    return result;
+  }
+
 
   async getLinkFromDir(dirPath: string): Promise<string | null> {
     const linkFile = path.join(dirPath, 'link.txt');

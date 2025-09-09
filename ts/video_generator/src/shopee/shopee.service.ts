@@ -100,4 +100,21 @@ export class ShopeeAffiliateService {
 
     return this.getProductOfferV2(shopId, itemId);
   }
+
+  async validateProductLink(productUrl: string): Promise<boolean> {
+  try {
+    const offer = await this.getProductOfferByUrl(productUrl);
+
+    if (!offer?.nodes?.length) {
+      this.logger.warn(`⚠️ Link inválido ou sem oferta ativa: ${productUrl}`);
+      return false;
+    }
+
+    this.logger.log(`✅ Link válido: ${productUrl}`);
+    return true;
+  } catch (err) {
+    this.logger.error(`❌ Erro ao validar link: ${productUrl}`, err.message);
+    return false;
+  }
+}
 }

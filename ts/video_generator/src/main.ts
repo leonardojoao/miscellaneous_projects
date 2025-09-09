@@ -30,6 +30,7 @@ async function bootstrap() {
     console.log('\n📋 Menu de Opções');
     console.log('1 - Processar todos os produtos sem legendas');
     console.log('2 - Processar todos os produtos com legendas');
+    console.log('6 - Validar links de afiliados Shopee');
     console.log('7 - (Futuro) Enviar todos os vídeos para o YouTube');
     console.log('8 - Criar diretórios para um mês/ano');
     console.log('9 - Sair\n');
@@ -41,6 +42,9 @@ async function bootstrap() {
           break;
         case '2':
           await processorService.processAllProducts({ subtitle: true });
+          break;
+        case '6':
+          await processorService.validateAllLinks();
           break;
         case '7':
           await uploadAllVideos(processorService, youtubeService);
