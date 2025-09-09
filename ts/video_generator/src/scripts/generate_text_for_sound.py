@@ -21,8 +21,12 @@ Gere duas versões:
 2. Versão longa – aproximadamente 3 minutos e 30 segundos
 
 ⚠️ Instruções:
-- Entregue apenas a narração em texto, sem marcações de cena, instruções técnicas ou parênteses.
-- Não inclua "(Cena: ...)" ou "(Texto na tela: ...)".
+- Entregue apenas a narração em texto, sem marcações de cena, instruções técnicas, parênteses ou qualquer outra marcação.
+- Não inclua "(Cena: ...)", "(Texto na tela: ...), "(Instruções tecnicas: ...)", "(Instruções tecnicas: ..." ou (Narração...).
+- Não inclua instruções de música como "(Música animada...)" ou "(Música aumenta...) ou (Música suave...) ou (Música finaliza...)".
+- NÃo inclua instruções de efeitos sonoros como "(Efeito sonoro...)" ou "(Som de...)".
+- Não inclua marcações de tempo como "(1 minuto)", "(30 segundos)", "(3 minutos e 30 segundos)" ou similares.
+- Não incluia açoes como "Ação:", "Ações:", "Narrador:", "Narradora:", "Voz em off:", "Voz do narrador:", "Voz da narradora:" ou similares.
 - Escreva em tom natural, como se fosse uma pessoa falando.
 - Todo o texto deve estar em português, sem trechos em inglês.
 - A versão curta deve ser objetiva, chamativa e envolvente.
