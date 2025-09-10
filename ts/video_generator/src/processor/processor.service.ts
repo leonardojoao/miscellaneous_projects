@@ -317,4 +317,8 @@ export class ProcessorService {
       });
     });
   }
+
+  getBasePath(): string {
+    return this.basePath;
+  }
 }
