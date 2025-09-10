@@ -25,7 +25,7 @@ export class YouTubeUtils {
     const basePath = this.processorService.getBasePath();
   
     // horários fixos (UTC precisa considerar fuso, ajustado para Brasília -03:00)
-    const publishHours = [8, 12, 19];
+    const publishHours = [8, 10, 12, 14, 16, 19];
   
     const dateDirs = fs
       .readdirSync(basePath)
