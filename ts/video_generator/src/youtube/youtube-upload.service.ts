@@ -2,7 +2,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { google } from 'googleapis';
 import * as fs from 'fs';
-import * as path from 'path';
 
 @Injectable()
 export class YoutubeUploadService {

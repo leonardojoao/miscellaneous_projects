@@ -3,10 +3,11 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
-import { VideoProcessingService } from '../video-processing/video-processing.service';
-import { ShopeeAffiliateService } from '../shopee/shopee.service';
 
 import { ProcessOptions, ValidationResult } from './interfaces/process-options.interface';
+
+import { VideoProcessingService } from '../video-processing/video-processing.service';
+import { ShopeeAffiliateService } from '../shopee/shopee.service';
 
 @Injectable()
 export class ProcessorService {
@@ -21,7 +22,6 @@ export class ProcessorService {
     private readonly videoService: VideoProcessingService,
     private readonly shopeeService: ShopeeAffiliateService,
   ) { }
-
 
   async processAllProducts({ resolution = '1080x1920', subtitle = false }: ProcessOptions = {}) {
     const dateDirs = fs
@@ -144,7 +144,7 @@ export class ProcessorService {
             resolution,
             segmentDurations.length, // quantos segmentos serão gerados
             dirPath,
-            segmentDurations, // <<< novo parâmetro
+            segmentDurations,
           );
 
           const tempVideo = path.join(dirPath, `temp-video-${Date.now()}.mp4`);
@@ -231,6 +231,39 @@ export class ProcessorService {
     return content;
   }
 
+  async getAllFinalVideos(): Promise<string[]> {
+    const finalVideos: string[] = [];
+
+    const dateDirs = fs
+      .readdirSync(this.basePath)
+      .filter((name) => fs.statSync(path.join(this.basePath, name)).isDirectory());
+
+    for (const dateDir of dateDirs) {
+      const datePath = path.join(this.basePath, dateDir);
+
+      const productDirs = fs
+        .readdirSync(datePath)
+        .filter((name) => fs.statSync(path.join(datePath, name)).isDirectory());
+
+      for (const productDir of productDirs) {
+        const dirPath = path.join(datePath, productDir);
+
+        const videos = fs
+          .readdirSync(dirPath)
+          .filter(
+            (f) =>
+              f === "video-audio_longo-final.mp4" ||
+              f === "video-audio_curto-legendado.mp4"
+          )
+          .map((f) => path.join(dirPath, f));
+
+        finalVideos.push(...videos);
+      }
+    }
+
+    return finalVideos;
+  }
+
   private async generateTextForAudiosToProduct(dirPath: string, productName: string): Promise<void> {
     return new Promise((resolve, reject) => {
       console.log(`🚀 Executando script Python para gerar textos para os áudios em ${dirPath}`);
@@ -269,39 +302,6 @@ export class ProcessorService {
         }
       });
     });
-  }
-
-  async getAllFinalVideos(): Promise<string[]> {
-    const finalVideos: string[] = [];
-
-    const dateDirs = fs
-      .readdirSync(this.basePath)
-      .filter((name) => fs.statSync(path.join(this.basePath, name)).isDirectory());
-
-    for (const dateDir of dateDirs) {
-      const datePath = path.join(this.basePath, dateDir);
-
-      const productDirs = fs
-        .readdirSync(datePath)
-        .filter((name) => fs.statSync(path.join(datePath, name)).isDirectory());
-
-      for (const productDir of productDirs) {
-        const dirPath = path.join(datePath, productDir);
-
-        const videos = fs
-          .readdirSync(dirPath)
-          .filter(
-            (f) =>
-              f === "video-audio_longo-final.mp4" ||
-              f === "video-audio_curto-legendado.mp4"
-          )
-          .map((f) => path.join(dirPath, f));
-
-        finalVideos.push(...videos);
-      }
-    }
-
-    return finalVideos;
   }
 
   private runPythonScript(input: string, output: string): Promise<void> {

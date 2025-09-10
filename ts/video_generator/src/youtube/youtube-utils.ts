@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+
 import { ProcessorService } from '../processor/processor.service';
 import { YoutubeUploadService } from './youtube-upload.service';
 import { ShopeeAffiliateService } from '../shopee/shopee.service';
@@ -120,7 +121,7 @@ export class YouTubeUtils {
     }
   }
   
-  async generateTitle(productName: string): Promise<string> {
+  private async generateTitle(productName: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const py = spawn(this.pythonPath, [this.titleScript, productName]);
   
@@ -145,7 +146,7 @@ export class YouTubeUtils {
     });
   }
   
-  async generateDescription(productName: string, link: string): Promise<string> {
+  private async generateDescription(productName: string, link: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const py = spawn(this.pythonPath, [this.descriptionScript, productName, link]);
   
@@ -170,7 +171,7 @@ export class YouTubeUtils {
     });
   }
   
-  async generateTags(productName: string): Promise<string[]> {
+  private async generateTags(productName: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
       const py = spawn(this.pythonPath, [this.tagsScript, productName]);
   
