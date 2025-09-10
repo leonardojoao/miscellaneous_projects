@@ -2,9 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DirectoryService } from './directory/directory.service';
 import { ProcessorService } from './processor/processor.service';
-import { uploadAllVideos } from './youtube/youtube-utils';
-import { YoutubeUploadService } from './youtube/youtube-upload.service';
+import { YouTubeUtils } from './youtube/youtube-utils';
 import { ShopeeAffiliateService } from './shopee/shopee.service';
+import { AuthService } from './auth/auth.service';
 
 import * as readline from 'readline';
 import * as dotenv from 'dotenv';
@@ -13,11 +13,13 @@ async function bootstrap() {
   dotenv.config(); // carrega o .env
 
   const app = await NestFactory.create(AppModule);
+  await app.listen(3000);
 
   const processorService = app.get(ProcessorService);
   const dirService = app.get(DirectoryService);
-  const youtubeService = app.get(YoutubeUploadService);
+  const youtubeUtils = app.get(YouTubeUtils);
   const shopeeService = app.get(ShopeeAffiliateService);
+  const authService = app.get(AuthService); // pega o serviço de autenticação
 
   await shopeeService.init(); // 🔑 força inicialização aqui
 
@@ -34,6 +36,7 @@ async function bootstrap() {
     console.log('7 - (Futuro) Enviar todos os vídeos para o YouTube');
     console.log('8 - Criar diretórios para um mês/ano');
     console.log('9 - Sair\n');
+    console.log('10 - Autenticar Google/YouTube\n');
 
     rl.question('Digite a opção: ', async (answer) => {
       switch (answer) {
@@ -47,7 +50,7 @@ async function bootstrap() {
           await processorService.validateAllLinks();
           break;
         case '7':
-          await uploadAllVideos(processorService, youtubeService);
+          await youtubeUtils.uploadAllVideos();
           break;
         case '8':
           rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
@@ -89,6 +92,31 @@ async function bootstrap() {
           console.log('👋 Saindo...');
           rl.close();
           await app.close();
+          return;
+        case '10':
+          // 🔑 Fluxo de autenticação Google/YouTube
+          const url = authService.getAuthUrl();
+          console.log('\n1️⃣ Abra esta URL no navegador e autorize a conta:');
+          console.log(url);
+
+          rl.question('\n2️⃣ Cole o código de autorização aqui: ', async (code) => {
+            try {
+              const tokens = await authService.getTokens(code.trim());
+              console.log('\n🎟️ Tokens recebidos:');
+              console.log(tokens);
+
+              if (tokens.refresh_token) {
+                console.log('\n💾 Use este refresh token no seu .env:');
+                console.log(`YT_REFRESH_TOKEN=${tokens.refresh_token}`);
+              } else {
+                console.log('\n⚠️ Nenhum refresh token retornado. Tente adicionar "prompt: consent" no generateAuthUrl.');
+              }
+            } catch (err) {
+              console.error('❌ Erro ao obter tokens:', err.message);
+            } finally {
+              showMenu();
+            }
+          });
           return;
         default:
           console.log('❌ Opção inválida');
