@@ -84,10 +84,21 @@ export class VideoProcessingService {
     return new Promise((resolve, reject) => {
       ffmpeg.ffprobe(audioPath, (err, metadata) => {
         if (err) return reject(err);
+
         const duration = metadata.format.duration;
         if (duration === undefined) {
-          return reject(new Error('Could not determine audio duration'));
+          return reject(new Error("Could not determine audio duration"));
         }
+
+        // regra: se estiver entre 2m15s (135s) e 3m (180s)
+        if (duration > 135 && duration < 180) {
+          // sorteia entre 180s e 195s
+          const min = 180;
+          const max = 195;
+          const randomDuration = Math.floor(Math.random() * (max - min + 1)) + min;
+          return resolve(randomDuration);
+        }
+
         resolve(duration);
       });
     });

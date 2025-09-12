@@ -18,7 +18,7 @@ Crie um roteiro de vídeo de vendas em PORTUGUÊS para o produto:
 Gere duas versões:
 
 1. Versão curta – aproximadamente 1 minuto
-2. Versão longa – aproximadamente 3 minutos e 30 segundos
+2. Versão longa – aproximadamente 4 minutos
 
 ⚠️ Instruções:
 - Entregue apenas a narração em texto, sem marcações de cena, instruções técnicas, parênteses ou qualquer outra marcação.
