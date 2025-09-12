@@ -12,11 +12,14 @@ import { ShopeeAffiliateService } from '../shopee/shopee.service';
 @Injectable()
 export class ProcessorService {
   private readonly basePath = path.join(__dirname, '..', '..', 'products');
+  private readonly musicPath = path.join(__dirname, '..', '..', 'music');
   private readonly productLibraryPath = path.join(__dirname, '..', '..', 'product_library');
   private readonly pythonPath = path.join(__dirname, '..', '..', 'venv-1.2', 'bin', 'python');
   private readonly subtitleScript = path.join(process.cwd(), 'src', 'scripts', 'add_subtitles.py');
   private readonly soundTextScript = path.join(process.cwd(), 'src', 'scripts', 'generate_text_for_sound.py');
   private readonly soundAudioScript = path.join(process.cwd(), 'src', 'scripts', 'generate_sound_for_product.py');
+
+  private lastMusicUsed: string | null = null;
 
   constructor(
     private readonly videoService: VideoProcessingService,
@@ -157,6 +160,8 @@ export class ProcessorService {
           );
 
           await this.videoService.mergeAudioWithVideo(tempVideo, audio, finalOutput);
+
+          const finalOutputWithMusic = await this.addBackgroundMusicToVideo(finalOutput);
           fs.unlinkSync(tempVideo);
 
           console.log(`✅ Final video created: ${finalOutput}`);
@@ -164,13 +169,124 @@ export class ProcessorService {
           if (path.parse(audio).name === 'audio_curto' && subtitle) {
             // 🚀 Agora roda o Python para adicionar legendas
             const subtitledOutput = path.join(dirPath, `video-${path.parse(audio).name}-legendado.mp4`);
-            await this.runPythonScript(finalOutput, subtitledOutput);
+            await this.runPythonScript(finalOutputWithMusic?? finalOutput, subtitledOutput);
 
             console.log(`🎉 Video with subtitles created: ${subtitledOutput}`);
           }
         }
       }
     }
+  }
+
+  private async addBackgroundMusicToVideo(videoFile: string): Promise<string | void> {
+    const musics = fs
+      .readdirSync(this.musicPath)
+      .filter((f) => f.endsWith('.mp3'))
+      .map((f) => path.join(this.musicPath, f));
+
+    if (musics.length === 0) {
+      console.log("⚠️ Nenhuma música encontrada em music/, pulando...");
+      return;
+    }
+
+    // escolhe música aleatória diferente da última
+    let selectedMusic: string;
+    do {
+      selectedMusic = musics[Math.floor(Math.random() * musics.length)];
+    } while (musics.length > 1 && selectedMusic === this.lastMusicUsed);
+
+    this.lastMusicUsed = selectedMusic;
+
+    console.log(`🎶 Música escolhida: ${path.basename(selectedMusic)}`);
+
+    // pega duração do vídeo e da música
+    const videoDuration = await this.videoService.getVideoDuration(videoFile);
+    const musicDuration = await this.videoService.getAudioDuration(selectedMusic);
+
+    // repete a música até cobrir o vídeo
+    const musicCopies: string[] = [];
+    let total = 0;
+    while (total < videoDuration) {
+      musicCopies.push(selectedMusic);
+      total += musicDuration;
+    }
+
+    const extendedMusic = path.join(
+      path.dirname(videoFile),
+      `music-extended-${Date.now()}.mp3`,
+    );
+
+    await this.concatenateAudios(musicCopies, extendedMusic);
+
+    const outputWithMusic = path.join(
+      path.dirname(videoFile),
+      `${path.parse(videoFile).name}-music.mp4`,
+    );
+
+    // mixa áudio da narração + música de fundo
+    await this.mergeAudioTracks(videoFile, extendedMusic, outputWithMusic);
+
+    console.log(`✅ Vídeo com música de fundo criado: ${outputWithMusic}`);
+
+    // limpa música temporária
+    fs.unlinkSync(extendedMusic);
+
+    return outputWithMusic;
+  }
+
+  async concatenateAudios(files: string[], output: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const listFile = path.join(path.dirname(output), `concat-${Date.now()}.txt`);
+      fs.writeFileSync(
+        listFile,
+        files.map((f) => `file '${f}'`).join('\n'),
+      );
+
+      const ffmpeg = spawn('ffmpeg', [
+        '-y',
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', listFile,
+        '-c', 'copy',
+        output,
+      ]);
+
+      ffmpeg.on('close', (code) => {
+        fs.unlinkSync(listFile);
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`❌ Erro ao concatenar áudios (code ${code})`));
+        }
+      });
+    });
+  }
+
+  async mergeAudioTracks(videoFile: string, musicFile: string, output: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const ffmpeg = spawn('ffmpeg', [
+        '-y',
+        '-i', videoFile,   // vídeo já com narração
+        '-i', musicFile,   // música de fundo
+        '-filter_complex',
+        // reduz volume da música e faz mixagem
+        "[1:a]volume=0.1[a1];[0:a][a1]amix=inputs=2:duration=first:dropout_transition=2[aout]",
+        '-map', '0:v',     // mantém o vídeo original
+        '-map', '[aout]',  // áudio mixado
+        '-c:v', 'copy',    // não recodifica o vídeo
+        '-c:a', 'aac',
+        '-shortest',       // garante que não passa do vídeo
+        output,
+      ]);
+
+      ffmpeg.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`❌ Erro ao mesclar áudio com música (code ${code})`));
+        }
+      });
+    });
   }
 
   async validateAllLinks(): Promise<ValidationResult> {
