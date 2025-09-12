@@ -1,6 +1,10 @@
 import os
 import sys
+import torch
 from TTS.api import TTS
+from TTS.tts.configs.xtts_config import XttsConfig, XttsArgs
+from TTS.tts.models.xtts import XttsAudioConfig
+from TTS.config.shared_configs import BaseDatasetConfig
 from pydub import AudioSegment
 
 if len(sys.argv) < 2:
@@ -9,11 +13,14 @@ if len(sys.argv) < 2:
 
 dir_path = sys.argv[1]
 
-# Modelo que suporta múltiplas vozes e clonagem (multilingual + VITS)
-model_name = "tts_models/multilingual/multi-dataset/your_tts"
+# Permite carregar todas as classes do checkpoint XTTSv2
+torch.serialization.add_safe_globals([XttsConfig, XttsAudioConfig, BaseDatasetConfig, XttsArgs])
+
+# Modelo XTTSv2
+model_name = "tts_models/multilingual/multi-dataset/xtts_v2"
 tts = TTS(model_name)
 
-voice_sample = os.path.join(os.path.dirname(__file__), "untitled.wav")
+voice_sample = os.path.join(os.path.dirname(__file__), "voz2.wav")
 
 # Lista de arquivos de entrada e saída
 text_files = [
@@ -29,16 +36,18 @@ for txt_file, audio_file in text_files:
   with open(txt_file, 'r', encoding='utf-8') as f:
     texto = f.read().strip()
   
+  # Caminho temporário WAV
   temp_wav = audio_file.replace(".mp3", "_temp.wav")
+
+  # Gera o áudio clonando a voz
   tts.tts_to_file(
     text=texto,
     speaker_wav=voice_sample,
-    language="pt-br",
+    language="pt",
     file_path=temp_wav
   )
   
   audio = AudioSegment.from_wav(temp_wav)
-  audio = audio.speedup(playback_speed=1.1)
   audio.export(audio_file, format="mp3")
   os.remove(temp_wav)
 
