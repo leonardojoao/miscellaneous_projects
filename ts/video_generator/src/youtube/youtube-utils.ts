@@ -49,14 +49,12 @@ export class YouTubeUtils {
         if (!fs.existsSync(linkFile)) continue;
         const link = fs.readFileSync(linkFile, 'utf-8').trim();
   
-        const videos = fs
-          .readdirSync(dirPath)
-          .filter(
-            (f) =>
-              f === 'video-audio_longo-final.mp4' ||
-              f === 'video-audio_curto-legendado.mp4',
-          )
-          .map((f) => path.join(dirPath, f));
+        const videos = [
+          'video-audio_longo-final.mp4',
+          'video-audio_curto-legendado.mp4',
+        ]
+          .map((f) => path.join(dirPath, f))
+          .filter((f) => fs.existsSync(f));
   
         if (videos.length === 0) continue;
   
