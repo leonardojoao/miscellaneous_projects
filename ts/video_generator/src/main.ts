@@ -30,24 +30,29 @@ async function bootstrap() {
 
   async function showMenu() {
     console.log('\n📋 Menu de Opções');
-    console.log('1 - Processar todos os produtos sem legendas');
-    console.log('2 - Processar todos os produtos com legendas');
-    console.log('6 - Validar links de afiliados Shopee');
+    console.log('1 - Validar links de afiliados Shopee');
+    console.log('2 - Processar todos os produtos sem legendas');
+    console.log('3 - Processar todos os produtos com legendas');
+    console.log('4 - Processar todos os produtos com legendas + upload YouTube (Futuro)');
     console.log('7 - (Futuro) Enviar todos os vídeos para o YouTube');
     console.log('8 - Criar diretórios para um mês/ano');
-    console.log('9 - Sair\n');
-    console.log('10 - Autenticar Google/YouTube\n');
+    console.log('9 - Autenticar Google/YouTube');
+    console.log('10 - Sair\n');
 
     rl.question('Digite a opção: ', async (answer) => {
       switch (answer) {
         case '1':
-          await processorService.processAllProducts();
+          await processorService.validateAllLinks();
           break;
         case '2':
+          await processorService.processAllProducts();
+          break;
+        case '3':
           await processorService.processAllProducts({ subtitle: true });
           break;
-        case '6':
-          await processorService.validateAllLinks();
+        case '4':
+          await processorService.processAllProducts({ subtitle: true });
+          await youtubeUtils.uploadAllVideos();
           break;
         case '7':
           await youtubeUtils.uploadAllVideos();
@@ -89,11 +94,6 @@ async function bootstrap() {
           });
           return; // evita cair no showMenu duplicado
         case '9':
-          console.log('👋 Saindo...');
-          rl.close();
-          await app.close();
-          return;
-        case '10':
           // 🔑 Fluxo de autenticação Google/YouTube
           const url = authService.getAuthUrl();
           console.log('\n1️⃣ Abra esta URL no navegador e autorize a conta:');
@@ -117,6 +117,11 @@ async function bootstrap() {
               showMenu();
             }
           });
+          return;
+        case '10':
+          console.log('👋 Saindo...');
+          rl.close();
+          await app.close();
           return;
         default:
           console.log('❌ Opção inválida');
