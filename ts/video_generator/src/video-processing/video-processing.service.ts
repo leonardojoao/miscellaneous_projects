@@ -92,8 +92,8 @@ export class VideoProcessingService {
 
         // regra: se estiver entre 2m15s (135s) e 3m (180s)
         if (duration > 135 && duration < 180) {
-          // sorteia entre 180s e 195s
-          const min = 180;
+          // sorteia entre 181s e 195s
+          const min = 181;
           const max = 195;
           const randomDuration = Math.floor(Math.random() * (max - min + 1)) + min;
           return resolve(randomDuration);
@@ -112,7 +112,7 @@ export class VideoProcessingService {
         .outputOptions([
           '-c:v copy',   // mantém o vídeo sem recodificar
           '-c:a aac',    // converte o áudio para AAC
-          '-shortest',   // garante que não ultrapasse o tamanho do áudio/vídeo
+          // '-shortest',   // garante que não ultrapasse o tamanho do áudio/vídeo
         ])
         .save(outputPath)
         .on('end', () => resolve())
