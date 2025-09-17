@@ -50,7 +50,7 @@ export class YouTubeUtils {
         const link = fs.readFileSync(linkFile, 'utf-8').trim();
   
         const videos = [
-          'video-audio_longo-final.mp4',
+          'video-audio_longo-final-music.mp4',
           'video-audio_curto-legendado.mp4',
         ]
           .map((f) => path.join(dirPath, f))
