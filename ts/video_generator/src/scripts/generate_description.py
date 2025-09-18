@@ -48,5 +48,8 @@ response = ollama.chat(
 descricao = response["message"]["content"].strip()
 descricao = descricao.replace("**", "")
 
+# Sempre adiciona no início com uma linha em branco depois
+descricao_final = f"👉 Garanta já a sua: 🔗 {link}\n\n{descricao}"
+
 # Imprime no stdout (NestJS vai capturar)
-print(descricao)
+print(descricao_final)
