@@ -32,8 +32,9 @@ async function bootstrap() {
     console.log('\n📋 Menu de Opções');
     console.log('1 - Validar links de afiliados Shopee');
     console.log('2 - Processar todos os produtos sem legendas');
-    console.log('3 - Processar todos os produtos com legendas');
-    console.log('4 - Processar todos os produtos com legendas + upload YouTube (Futuro)');
+    console.log('3 - Processar todos os produtos com legendas - apenas Short Videos (9:16)');
+    console.log('4 - Processar todos os produtos com legendas');
+    console.log('5 - Processar todos os produtos com legendas + upload YouTube (Futuro)');
     console.log('7 - (Futuro) Enviar todos os vídeos para o YouTube');
     console.log('8 - Criar diretórios para um mês/ano');
     console.log('9 - Autenticar Google/YouTube');
@@ -48,9 +49,12 @@ async function bootstrap() {
           await processorService.processAllProducts();
           break;
         case '3':
-          await processorService.processAllProducts({ subtitle: true });
+          await processorService.processAllProducts({ subtitle: true, onlyShortVideo: true });
           break;
         case '4':
+          await processorService.processAllProducts({ subtitle: true });
+          break;
+        case '5':
           await processorService.processAllProducts({ subtitle: true });
           await youtubeUtils.uploadAllVideos();
           break;

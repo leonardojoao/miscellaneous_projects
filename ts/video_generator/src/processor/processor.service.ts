@@ -26,7 +26,7 @@ export class ProcessorService {
     private readonly shopeeService: ShopeeAffiliateService,
   ) { }
 
-  async processAllProducts({ resolution = '1080x1920', subtitle = false }: ProcessOptions = {}) {
+  async processAllProducts({ resolution = '1080x1920', subtitle = false, onlyShortVideo=false }: ProcessOptions = {}) {
     const dateDirs = fs
       .readdirSync(this.basePath)
       .filter((name) =>
@@ -108,7 +108,7 @@ export class ProcessorService {
         if (audios.length === 0) {
           console.log(`⚠️ Nenhum áudio encontrado em ${dirPath}, gerando...`);
 
-          await this.generateTextForAudiosToProduct(dirPath, productName);
+          await this.generateTextForAudiosToProduct(dirPath, productName, onlyShortVideo);
 
           await this.generateAudiosToProduct(dirPath);
           console.log('✅ Áudios gerados com sucesso');
@@ -380,11 +380,11 @@ export class ProcessorService {
     return finalVideos;
   }
 
-  private async generateTextForAudiosToProduct(dirPath: string, productName: string): Promise<void> {
+  private async generateTextForAudiosToProduct(dirPath: string, productName: string, onlyShortVideo: boolean): Promise<void> {
     return new Promise((resolve, reject) => {
       console.log(`🚀 Executando script Python para gerar textos para os áudios em ${dirPath}`);
 
-      const pythonProcess = spawn(this.pythonPath, [this.soundTextScript, dirPath, productName]);
+      const pythonProcess = spawn(this.pythonPath, [this.soundTextScript, dirPath, productName, onlyShortVideo ? 'true' : 'false']);
 
       pythonProcess.stdout.on('data', (data) => console.log(`PYTHON: ${data}`));
       pythonProcess.stderr.on('data', (data) => console.error(`PYTHON ERR: ${data}`));
