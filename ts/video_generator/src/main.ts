@@ -29,39 +29,52 @@ async function bootstrap() {
   });
 
   async function showMenu() {
-    console.log('\n📋 Menu de Opções');
-    console.log('1 - Validar links de afiliados Shopee');
-    console.log('2 - Processar todos os produtos sem legendas');
-    console.log('3 - Processar todos os produtos com legendas - apenas Short Videos (9:16)');
-    console.log('4 - Processar todos os produtos com legendas');
-    console.log('5 - Processar todos os produtos com legendas + upload YouTube (Futuro)');
-    console.log('7 - (Futuro) Enviar todos os vídeos para o YouTube');
-    console.log('8 - Criar diretórios para um mês/ano');
-    console.log('9 - Autenticar Google/YouTube');
-    console.log('10 - Sair\n');
+    console.log('\n📋 Menu Principal');
+
+    console.log('\n⚙️ Configurações');
+    console.log('1 - Autenticar Google/YouTube');
+    console.log('2 - Criar diretórios por mês/ano');
+
+    console.log('\n🔗 Afiliados');
+    console.log('3 - Validar links da Shopee');
+
+    console.log('\n🎬 Processamento de Produtos');
+    console.log('4 - Processar sem legendas');
+    console.log('5 - Processar com legendas (todos)');
+    console.log('6 - Processar com legendas (apenas Short Videos 9:16) + upload YouTube');
+    console.log('7 - Processar com legendas (apenas video longo) + upload YouTube');
+    
+    console.log('\n📤 Publicação');
+    console.log('8 - Enviar todos os vídeos para o YouTube');
 
     rl.question('Digite a opção: ', async (answer) => {
       switch (answer) {
         case '1':
-          await processorService.validateAllLinks();
-          break;
+          // 🔑 Fluxo de autenticação Google/YouTube
+          const url = authService.getAuthUrl();
+          console.log('\n1️⃣ Abra esta URL no navegador e autorize a conta:');
+          console.log(url);
+
+          rl.question('\n2️⃣ Cole o código de autorização aqui: ', async (code) => {
+            try {
+              const tokens = await authService.getTokens(code.trim());
+              console.log('\n🎟️ Tokens recebidos:');
+              console.log(tokens);
+
+              if (tokens.refresh_token) {
+                console.log('\n💾 Use este refresh token no seu .env:');
+                console.log(`YT_REFRESH_TOKEN=${tokens.refresh_token}`);
+              } else {
+                console.log('\n⚠️ Nenhum refresh token retornado. Tente adicionar "prompt: consent" no generateAuthUrl.');
+              }
+            } catch (err) {
+              console.error('❌ Erro ao obter tokens:', err.message);
+            } finally {
+              showMenu();
+            }
+          });
+          return;
         case '2':
-          await processorService.processAllProducts();
-          break;
-        case '3':
-          await processorService.processAllProducts({ subtitle: true, onlyShortVideo: true });
-          break;
-        case '4':
-          await processorService.processAllProducts({ subtitle: true });
-          break;
-        case '5':
-          await processorService.processAllProducts({ subtitle: true });
-          await youtubeUtils.uploadAllVideos();
-          break;
-        case '7':
-          await youtubeUtils.uploadAllVideos();
-          break;
-        case '8':
           rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
             rl.question('👉 Digite o ano (ex: 2025): ', (yearInput) => {
               rl.question('👉 Digite a quantidade de produtos: ', (countInput) => {
@@ -97,31 +110,22 @@ async function bootstrap() {
             });
           });
           return; // evita cair no showMenu duplicado
-        case '9':
-          // 🔑 Fluxo de autenticação Google/YouTube
-          const url = authService.getAuthUrl();
-          console.log('\n1️⃣ Abra esta URL no navegador e autorize a conta:');
-          console.log(url);
-
-          rl.question('\n2️⃣ Cole o código de autorização aqui: ', async (code) => {
-            try {
-              const tokens = await authService.getTokens(code.trim());
-              console.log('\n🎟️ Tokens recebidos:');
-              console.log(tokens);
-
-              if (tokens.refresh_token) {
-                console.log('\n💾 Use este refresh token no seu .env:');
-                console.log(`YT_REFRESH_TOKEN=${tokens.refresh_token}`);
-              } else {
-                console.log('\n⚠️ Nenhum refresh token retornado. Tente adicionar "prompt: consent" no generateAuthUrl.');
-              }
-            } catch (err) {
-              console.error('❌ Erro ao obter tokens:', err.message);
-            } finally {
-              showMenu();
-            }
-          });
-          return;
+        case '3':
+          await processorService.validateAllLinks();
+          break;
+        case '4':
+          await processorService.processAllProducts();
+          break;
+        case '5':
+          await processorService.processAllProducts({ subtitle: true });
+          break;
+        case '6':
+          await processorService.processAllProducts({ subtitle: true, onlyShortVideo: true });
+          await youtubeUtils.uploadAllVideos();
+          break;
+        case '8':
+          await youtubeUtils.uploadAllVideos();
+          break;
         case '10':
           console.log('👋 Saindo...');
           rl.close();
