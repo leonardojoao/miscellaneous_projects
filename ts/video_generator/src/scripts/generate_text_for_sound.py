@@ -3,13 +3,14 @@ import sys
 import ollama
 import os
 
-if len(sys.argv) < 3:
-  print("❌ Uso: gerar_audios.py <dirPath> <productName> [ShortVideo(true|false)]")
+if len(sys.argv) < 4:
+  print("❌ Uso: gerar_audios.py <dirPath> <productName> [ShortVideo(true|false)] [LongVideo(true|false)]")
   sys.exit(1)
 
 dir_path = sys.argv[1]
 product_name = sys.argv[2]
 short_video = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
+long_video = sys.argv[4].lower() == "true" if len(sys.argv) > 4 else False
 
 prompt = f"""
 Crie um roteiro de vídeo de vendas em PORTUGUÊS para o produto:
@@ -65,6 +66,11 @@ if short_video:
   with open(curto_path, "w", encoding="utf-8") as f:
     f.write(versao_curta)
   print(f"✅ Versão curta salva em {curto_path}")
+elif long_video:
+  longo_path = os.path.join(dir_path, "roteiro_longo.txt")
+  with open(longo_path, "w", encoding="utf-8") as f:
+    f.write(versao_longa)
+  print(f"✅ Versão longa salva em {longo_path}")
 else:
   curto_path = os.path.join(dir_path, "roteiro_curto.txt")
   longo_path = os.path.join(dir_path, "roteiro_longo.txt")

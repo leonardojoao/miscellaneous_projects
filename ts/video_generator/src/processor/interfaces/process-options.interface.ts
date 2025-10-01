@@ -3,6 +3,7 @@ export interface ProcessOptions {
   resolution?: string;
   subtitle?: boolean;
   onlyShortVideo?: boolean;
+  onlyLongVideo?: boolean;
 }
 
 export interface ValidationResult {

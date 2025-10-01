@@ -8,6 +8,7 @@ import { ProcessOptions, ValidationResult } from './interfaces/process-options.i
 
 import { VideoProcessingService } from '../video-processing/video-processing.service';
 import { ShopeeAffiliateService } from '../shopee/shopee.service';
+import { on } from 'events';
 
 @Injectable()
 export class ProcessorService {
@@ -26,7 +27,7 @@ export class ProcessorService {
     private readonly shopeeService: ShopeeAffiliateService,
   ) { }
 
-  async processAllProducts({ resolution = '1080x1920', subtitle = false, onlyShortVideo=false }: ProcessOptions = {}) {
+  async processAllProducts({ resolution = '1080x1920', subtitle = false, onlyShortVideo=false, onlyLongVideo=false }: ProcessOptions = {}) {
     const dateDirs = fs
       .readdirSync(this.basePath)
       .filter((name) =>
@@ -108,7 +109,7 @@ export class ProcessorService {
         if (audios.length === 0) {
           console.log(`⚠️ Nenhum áudio encontrado em ${dirPath}, gerando...`);
 
-          await this.generateTextForAudiosToProduct(dirPath, productName, onlyShortVideo);
+          await this.generateTextForAudiosToProduct(dirPath, productName, onlyShortVideo, onlyLongVideo);
 
           await this.generateAudiosToProduct(dirPath);
           console.log('✅ Áudios gerados com sucesso');
@@ -163,6 +164,12 @@ export class ProcessorService {
 
           const finalOutputWithMusic = await this.addBackgroundMusicToVideo(finalOutput);
           fs.unlinkSync(tempVideo);
+
+          // deletar o vídeo base sem música
+          if (finalOutputWithMusic && fs.existsSync(finalOutput)) {
+            fs.unlinkSync(finalOutput);
+            console.log(`🗑️ Arquivo base removido: ${finalOutput}`);
+          }
 
           console.log(`✅ Final video created: ${finalOutput}`);
 
@@ -380,11 +387,11 @@ export class ProcessorService {
     return finalVideos;
   }
 
-  private async generateTextForAudiosToProduct(dirPath: string, productName: string, onlyShortVideo: boolean): Promise<void> {
+  private async generateTextForAudiosToProduct(dirPath: string, productName: string, onlyShortVideo: boolean, onlyLongVideo: boolean): Promise<void> {
     return new Promise((resolve, reject) => {
       console.log(`🚀 Executando script Python para gerar textos para os áudios em ${dirPath}`);
 
-      const pythonProcess = spawn(this.pythonPath, [this.soundTextScript, dirPath, productName, onlyShortVideo ? 'true' : 'false']);
+      const pythonProcess = spawn(this.pythonPath, [this.soundTextScript, dirPath, productName, onlyShortVideo ? 'true' : 'false', onlyLongVideo ? 'true' : 'false']);
 
       pythonProcess.stdout.on('data', (data) => console.log(`PYTHON: ${data}`));
       pythonProcess.stderr.on('data', (data) => console.error(`PYTHON ERR: ${data}`));
