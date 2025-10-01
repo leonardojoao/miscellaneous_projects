@@ -123,6 +123,10 @@ async function bootstrap() {
           await processorService.processAllProducts({ subtitle: true, onlyShortVideo: true });
           await youtubeUtils.uploadAllVideos();
           break;
+        case '7':
+          await processorService.processAllProducts({ subtitle: true, onlyLongVideo: true });
+          await youtubeUtils.uploadAllVideos();
+          break;
         case '8':
           await youtubeUtils.uploadAllVideos();
           break;
