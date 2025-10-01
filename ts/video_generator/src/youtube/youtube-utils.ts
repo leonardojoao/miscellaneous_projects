@@ -23,10 +23,7 @@ export class YouTubeUtils {
 
   async uploadAllVideos() {
     const basePath = this.processorService.getBasePath();
-  
-    // horários fixos (UTC precisa considerar fuso, ajustado para Brasília -03:00)
-    const publishHours = [8, 10, 12, 14, 16, 19];
-  
+
     const dateDirs = fs
       .readdirSync(basePath)
       .filter((name) => fs.statSync(path.join(basePath, name)).isDirectory());
@@ -75,33 +72,49 @@ export class YouTubeUtils {
           videosByDate[dateKey].push({ video, link });
         }
       }
-  
       // Processa os vídeos daquele dia
       for (const dateKey of Object.keys(videosByDate)) {
         const dailyVideos = videosByDate[dateKey];
-  
+
+        // gera horários dinâmicos (de 7h até 20h)
+        const totalVideos = dailyVideos.length;
+        const startHour = 7;
+        const endHour = 20;
+        const totalMinutes = (endHour - startHour) * 60;
+
+        const interval = totalVideos > 1 ? totalMinutes / (totalVideos - 1) : 0;
+
+        const dynamicTimes = Array.from({ length: totalVideos }, (_, idx) => {
+          const minutesFromStart = Math.round(idx * interval);
+          const total = startHour * 60 + minutesFromStart;
+          const h = Math.floor(total / 60);
+          const m = total % 60;
+          return { h, m };
+        });
+
         for (let i = 0; i < dailyVideos.length; i++) {
-  
+
           const { video, link } = dailyVideos[i];
-  
+
           const dataProduct = await this.shopeeService.getProductOfferByUrl(link);
           const productName = dataProduct.nodes[0].productName;
           const productLink = dataProduct.nodes[0].offerLink;
-  
-          // Usa o link para montar os metadados
+
           const title = await this.generateTitle(productName);
           const description = await this.generateDescription(productName, productLink);
           const tags = await this.generateTags(productName);
-  
-          // Define hora baseada no índice
-          const hour = publishHours[i % publishHours.length];
-  
+
+          // Pega hora/minuto dinâmico
+          const { h, m } = dynamicTimes[i];
+
           // Cria objeto Date em horário de Brasília
           const localDate = new Date(
-            `${dateKey}T${hour.toString().padStart(2, '0')}:00:00-03:00`,
+            `${dateKey}T${h.toString().padStart(2, '0')}:${m
+              .toString()
+              .padStart(2, '0')}:00-03:00`,
           );
           const publishAtUTC = new Date(localDate.toISOString());
-  
+
           try {
             await this.youtubeService.uploadVideo(
               video,
@@ -110,7 +123,9 @@ export class YouTubeUtils {
               tags,
               publishAtUTC,
             );
-            console.log(`✅ ${path.basename(video)} agendado para ${publishAtUTC.toISOString()}`);
+            console.log(
+              `✅ ${path.basename(video)} agendado para ${publishAtUTC.toISOString()} (${h}:${m.toString().padStart(2, '0')})`,
+            );
           } catch (err: any) {
             console.error(`❌ Erro ao enviar ${video}:`, err.message);
           }
