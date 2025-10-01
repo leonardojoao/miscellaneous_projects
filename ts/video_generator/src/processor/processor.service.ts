@@ -107,18 +107,33 @@ export class ProcessorService {
           .map((f) => path.join(dirPath, f));
 
         if (audios.length === 0) {
-          console.log(`⚠️ Nenhum áudio encontrado em ${dirPath}, gerando...`);
+          console.log(`⚠️ Nenhum áudio encontrado em ${dirPath}, verificando roteiros...`);
 
-          await this.generateTextForAudiosToProduct(dirPath, productName, onlyShortVideo, onlyLongVideo);
+          const roteiroCurto = path.join(dirPath, "roteiro_curto.txt");
+          const roteiroLongo = path.join(dirPath, "roteiro_longo.txt");
 
+          // Gera os textos apenas se não existirem
+          if (!fs.existsSync(roteiroCurto) && !fs.existsSync(roteiroLongo)) {
+            console.log("⚠️ Nenhum roteiro encontrado, gerando textos...");
+            await this.generateTextForAudiosToProduct(
+              dirPath,
+              productName,
+              onlyShortVideo,
+              onlyLongVideo
+            );
+          } else {
+            console.log("✅ Roteiros já existem, pulando geração de textos...");
+          }
+
+          // Agora gera os áudios
           await this.generateAudiosToProduct(dirPath);
-          console.log('✅ Áudios gerados com sucesso');
-          
-          // após gerar os áudios, atualiza o array
+          console.log("✅ Áudios gerados com sucesso");
+
+          // Atualiza array
           audios.push(
             ...fs
               .readdirSync(dirPath)
-              .filter((f) => f.endsWith('.mp3'))
+              .filter((f) => f.endsWith(".mp3"))
               .map((f) => path.join(dirPath, f))
           );
         }
