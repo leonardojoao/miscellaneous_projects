@@ -4,6 +4,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import { spawn } from 'child_process';
+import os from 'os';
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
 
@@ -104,19 +106,71 @@ export class VideoProcessingService {
     });
   }
 
-  async mergeAudioWithVideo(videoPath: string, audioPath: string, outputPath: string) {
+  async mergeAudioWithVideo(videoPath: string, audioPath: string, outputPath: string, targetDuration?: number) {
     return new Promise<void>((resolve, reject) => {
-      ffmpeg()
-        .input(videoPath)
-        .input(audioPath)
-        .outputOptions([
-          '-c:v copy',   // mantém o vídeo sem recodificar
-          '-c:a aac',    // converte o áudio para AAC
-          // '-shortest',   // garante que não ultrapasse o tamanho do áudio/vídeo
-        ])
-        .save(outputPath)
-        .on('end', () => resolve())
-        .on('error', reject);
+      const args = ['-y', '-i', videoPath, '-i', audioPath];
+
+      if (targetDuration) {
+        // cria áudio extendido em silêncio
+        const extendedAudio = path.join(path.dirname(audioPath), `extended-${Date.now()}.mp3`);
+        args.splice(2, 1, extendedAudio); // substitui o audioPath pelo estendido
+
+        spawn('ffmpeg', [
+          '-y', '-i', audioPath,
+          '-af', `apad=pad_dur=${targetDuration}`,
+          '-t', `${targetDuration}`,
+          extendedAudio
+        ]).on('close', (code) => {
+          if (code !== 0) return reject(new Error("Erro ao estender áudio"));
+
+          ffmpeg()
+            .input(videoPath)
+            .input(extendedAudio)
+            .outputOptions(['-c:v copy', '-c:a aac'])
+            .save(outputPath)
+            .on('end', () => {
+              fs.unlinkSync(extendedAudio);
+              resolve();
+            })
+            .on('error', reject);
+        });
+      } else {
+        ffmpeg()
+          .input(videoPath)
+          .input(audioPath)
+          .outputOptions(['-c:v copy', '-c:a aac'])
+          .save(outputPath)
+          .on('end', () => resolve())
+          .on('error', reject);
+      }
+    });
+  }
+
+  async repeatLastSeconds(input: string, output: string, extraSeconds: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.getVideoDuration(input).then((duration) => {
+        const start = Math.max(duration - extraSeconds, 0);
+
+        ffmpeg()
+          .input(input)
+          .inputOptions([`-ss ${start}`]) // pega últimos segundos
+          .outputOptions([`-t ${extraSeconds}`]) // só o trecho necessário
+          .save(`${output}.part.mp4`)
+          .on('end', () => {
+            // concatena original + trecho repetido
+            ffmpeg()
+              .input(input)
+              .input(`${output}.part.mp4`)
+              .on('end', () => {
+                fs.unlinkSync(`${output}.part.mp4`);
+                resolve();
+              })
+              .on('error', (err) => reject(err))
+              .mergeToFile(output, os.tmpdir()); // ✅ corrigido
+          })
+          .on('error', (err) => reject(err))
+          .run();
+      });
     });
   }
 
