@@ -29,7 +29,13 @@ export class ProcessorService {
   // ===============================
   // Método principal refatorado
   // ===============================
-  async processAllProducts({ resolution = '1080x1920', subtitle = false, onlyShortVideo = false, onlyLongVideo = false }: ProcessOptions = {}) {
+  async processAllProducts({
+    resolution = '1080x1920',
+    subtitle = false,
+    onlyShortVideo = false,
+    onlyLongVideo = false,
+    mode = 'random', // 🔹 novo parâmetro opcional
+  }: ProcessOptions & { mode?: 'random' | 'sequential' } = {}) {
     const dateDirs = this.getDateDirs();
 
     for (const dateDir of dateDirs) {
@@ -39,6 +45,25 @@ export class ProcessorService {
         const dirPath = path.join(this.basePath, dateDir, productDir);
         console.log(`📂 Date: ${dateDir} | 🎬 Product: ${productDir}`);
 
+        // ======================================================
+        // 🔹 MODO SEQUENCIAL (cortes contínuos com áudio original)
+        // ======================================================
+        if (mode === 'sequential') {
+          console.log('⚙️ Usando modo SEQUENCIAL (cortes contínuos com áudio original)');
+          const videos = this.getVideos(dirPath);
+
+          if (!videos.length) {
+            console.warn(`⚠️ Nenhum vídeo encontrado em ${dirPath}`);
+            continue;
+          }
+
+          await this.processSequentialVideosAndAudios(videos, dirPath, resolution);
+          continue; // 👉 evita executar a parte abaixo
+        }
+
+        // ======================================================
+        // 🔹 MODO ALEATÓRIO (fluxo atual com Shopee, áudios e legendas)
+        // ======================================================
         let productName = await this.processShopeeIntegration(dirPath, productDir);
         if (!productName) productName = productDir;
 
@@ -50,6 +75,53 @@ export class ProcessorService {
         await this.processVideosAndAudios(videos, audios, dirPath, resolution, subtitle);
       }
     }
+  }
+
+  /**
+ * Processa vídeos e áudios usando cortes SEQUENCIAIS dos próprios vídeos originais (com áudio original).
+ * - Faz cortes entre 5s e 7s em sequência.
+ * - Cada trecho é único dentro do vídeo.
+ * - Evita cortes consecutivos do mesmo arquivo.
+ * - Mantém o áudio original de cada vídeo.
+ * - Concatena todos os segmentos em sequência final.
+ */
+  private async processSequentialVideosAndAudios(
+    videos: string[],
+    dirPath: string,
+    resolution: string,
+  ) {
+    console.log(`🎬 [Sequencial] Iniciando processamento com ${videos.length} vídeos`);
+
+    // 1️⃣ Criar cortes SEQUENCIAIS com áudio original
+    const sequentialSegments = await this.videoService.createSequentialSegmentsFromVideos(
+      videos,
+      dirPath,
+      resolution,
+    );
+
+    console.log(`✂️ Gerados ${sequentialSegments.length} segmentos sequenciais.`);
+
+    // 2️⃣ Concatenar todos os segmentos em um único vídeo final
+    const finalOutput = path.join(dirPath, 'video-final.mp4');
+    await this.videoService.concatenateSegments(sequentialSegments, finalOutput);
+
+    console.log(`✅ Vídeo final criado: ${finalOutput}`);
+
+    // 3️⃣ Adicionar música de fundo
+    const finalOutputWithMusic = await this.addBackgroundMusicToVideo(finalOutput);
+    if (finalOutputWithMusic) {
+      console.log(`🎶 Música de fundo adicionada: ${finalOutputWithMusic}`);
+
+      // Remove o arquivo sem música, se o novo foi criado com sucesso
+      if (fs.existsSync(finalOutput)) {
+        fs.unlinkSync(finalOutput);
+        console.log(`🗑️ Arquivo base (sem música) removido: ${finalOutput}`);
+      }
+    }
+
+    // 4️⃣ Limpar cortes temporários
+    this.videoService.cleanupSegments(sequentialSegments);
+    console.log(`🧹 Segmentos temporários removidos.`);
   }
 
   // ===============================
@@ -87,7 +159,7 @@ export class ProcessorService {
   private finalVideoAlreadyExists(dirPath: string): boolean {
     const existingFinals = [
       path.join(dirPath, "video-audio_curto-final.mp4"),
-      path.join(dirPath, "video-audio_longo-final.mp4"),
+      path.join(dirPath, "video-audio_longo-final-music.mp4"),
     ];
     const exists = existingFinals.some(f => fs.existsSync(f));
     if (exists) console.log("✅ Já existe vídeo final, pulando processamento...");
@@ -123,15 +195,33 @@ export class ProcessorService {
       .map(f => path.join(dirPath, f));
   }
 
-  private async processVideosAndAudios(videos: string[], audios: string[], dirPath: string, resolution: string, subtitle: boolean) {
+  private async processVideosAndAudios(
+    videos: string[],
+    audios: string[],
+    dirPath: string,
+    resolution: string,
+    subtitle: boolean,
+  ) {
     console.log(`Found ${videos.length} videos and ${audios.length} audios`);
 
     for (const audio of audios) {
       const audioDuration = await this.videoService.getAudioDuration(audio);
-      const segmentDurations = this.generateSegmentDurations(audioDuration);
+
+      // 🔹 Ajuste de duração alvo (caso especial entre 135s e 180s)
+      let targetDuration: number | undefined = undefined;
+      if (audioDuration > 135 && audioDuration < 180) {
+        const min = 181;
+        const max = 195;
+        targetDuration = Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      const segmentDurations = this.generateSegmentDurations(targetDuration ?? audioDuration);
 
       console.log(`🎵 Audio: ${path.basename(audio)} (${audioDuration.toFixed(1)}s)`);
       console.log(`Segments: [${segmentDurations.join(', ')}]`);
+      if (targetDuration) {
+        console.log(`📌 Ajustando duração alvo para ${targetDuration}s (irá repetir últimos segundos se necessário)`);
+      }
 
       const segments = await this.videoService.createRandomSegmentsFromVideos(
         videos,
@@ -146,7 +236,22 @@ export class ProcessorService {
       this.videoService.cleanupSegments(segments);
 
       const finalOutput = path.join(dirPath, `video-${path.parse(audio).name}-final.mp4`);
-      await this.videoService.mergeAudioWithVideo(tempVideo, audio, finalOutput);
+      await this.videoService.mergeAudioWithVideo(tempVideo, audio, finalOutput, targetDuration);
+
+      // 🔹 Pós-validação: garantir que chegou no targetDuration
+      if (targetDuration) {
+        const finalDuration = await this.videoService.getVideoDuration(finalOutput);
+        if (finalDuration < targetDuration) {
+          const missing = targetDuration - Math.floor(finalDuration);
+          console.log(`⚠️ Vídeo final ficou com ${finalDuration}s, repetindo últimos ${missing}s para completar ${targetDuration}s`);
+
+          const paddedOutput = path.join(dirPath, `video-${path.parse(audio).name}-padded.mp4`);
+          await this.videoService.repeatLastSeconds(finalOutput, paddedOutput, missing);
+
+          fs.unlinkSync(finalOutput);
+          fs.renameSync(paddedOutput, finalOutput);
+        }
+      }
 
       const finalOutputWithMusic = await this.addBackgroundMusicToVideo(finalOutput);
       fs.unlinkSync(tempVideo);
@@ -238,17 +343,38 @@ export class ProcessorService {
     });
   }
 
-  async mergeAudioTracks(videoFile: string, musicFile: string, output: string): Promise<void> {
+  private async mergeAudioTracks(
+    videoFile: string,
+    musicFile: string,
+    outputFile: string,
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       const ffmpeg = spawn('ffmpeg', [
-        '-y', '-i', videoFile, '-i', musicFile,
-        '-filter_complex', "[1:a]volume=0.1[a1];[0:a][a1]amix=inputs=2:duration=first:dropout_transition=2[aout]",
-        '-map', '0:v', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-shortest', output,
+        '-y', // overwrite
+        '-i', videoFile, // vídeo original (com áudio principal)
+        '-i', musicFile, // música de fundo
+        '-filter_complex',
+        // 🔹 Se o vídeo tiver áudio, mistura com volume reduzido da música
+        // 🔹 Se não tiver, apenas adiciona a música como trilha principal
+        "[0:a]volume=1[a0]; [1:a]volume=0.2[a1]; [a0][a1]amix=inputs=2:duration=longest[a]",
+        '-map', '0:v',
+        '-map', '[a]',
+        '-c:v', 'copy',
+        '-c:a', 'aac',
+        '-shortest',
+        outputFile,
       ]);
 
-      ffmpeg.on('close', (code) => code === 0 ? resolve() : reject(new Error(`❌ Erro ao mesclar áudio com música (code ${code})`)));
+      ffmpeg.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`❌ Erro ao mesclar áudio com música (code ${code})`));
+        }
+      });
     });
   }
+
 
   // ===============================
   // Funções existentes de integração
