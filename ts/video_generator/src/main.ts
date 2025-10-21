@@ -43,9 +43,16 @@ async function bootstrap() {
     console.log('5 - Processar com legendas (todos)');
     console.log('6 - Processar com legendas (apenas Short Videos 9:16) + upload YouTube');
     console.log('7 - Processar com legendas (apenas video longo) + upload YouTube');
+
+    console.log('\n🎬 Processamento de SlingShot');
+    console.log('8 - Processar com legendas (apenas video longo) + upload YouTube');
+    console.log('9 - Enviar todos os vídeos para o YouTube');
+    console.log('12 - Criar diretórios por mês/ano');
     
     console.log('\n📤 Publicação');
-    console.log('8 - Enviar todos os vídeos para o YouTube');
+    console.log('10 - Enviar todos os vídeos para o YouTube');
+
+    console.log('0 - Sair');
 
     rl.question('Digite a opção: ', async (answer) => {
       switch (answer) {
@@ -128,9 +135,53 @@ async function bootstrap() {
           await youtubeUtils.uploadAllVideos();
           break;
         case '8':
+          await processorService.processAllProducts({ mode: 'sequential' });
+          await youtubeUtils.uploadAllVideos({ mode: 'sequential' });
+          break;
+        case '9':
+          console.log('⏳ Enviando todos os vídeos para o YouTube...');
+          await youtubeUtils.uploadAllVideos({ mode: 'sequential' });
+          break;
+        case '12':
+          rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
+            rl.question('👉 Digite o ano (ex: 2025): ', (yearInput) => {
+              rl.question('👉 Digite a quantidade de produtos: ', (countInput) => {
+                try {
+                  const month = parseInt(monthInput, 10);
+                  const year = parseInt(yearInput, 10);
+                  const count = parseInt(countInput, 10);
+
+                  if (isNaN(month) || isNaN(year) || isNaN(count)) {
+                    throw new Error('Entrada inválida. Use números válidos.');
+                  }
+
+                  if (count < 1) {
+                    throw new Error('A quantidade de produtos deve ser pelo menos 1.');
+                  }
+
+                  // cria os diretórios e copia os produtos
+  
+                  const dirs = dirService.createVideoDirectoriesForMonthAndYear(
+                    month,
+                    year,
+                    count,
+                  );
+  
+                  console.log('📂 Diretórios criados:', dirs);
+                } catch (err) {
+                  console.error('❌ Erro:', err.message);
+                }
+  
+                // volta para o menu
+                showMenu();
+              });
+            });
+          });
+          return; // evita cair no showMenu duplicado
+        case '10':
           await youtubeUtils.uploadAllVideos();
           break;
-        case '10':
+        case '0':
           console.log('👋 Saindo...');
           rl.close();
           await app.close();
