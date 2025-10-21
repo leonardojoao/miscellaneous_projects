@@ -2,13 +2,111 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ffmpeg from 'fluent-ffmpeg';
 
 @Injectable()
 export class DirectoryService {
   private readonly basePath = path.join(__dirname, '..', '..', 'products');
   private readonly productLibraryPath = path.join(__dirname, '..', '..', 'product_library/shopee');
+  private readonly slingshotPath = path.join(__dirname, '..', '..', 'product_library/slingshot');
 
   private remainingProducts: string[] = [];
+
+  /**
+   * Cria diretórios de dias do mês/ano e dentro deles subdiretórios video_1, video_2, ...
+   * Copia vídeos do slingshot garantindo >= 4min de duração em cada pasta video_n.
+   */
+  async createVideoDirectoriesForMonthAndYear(
+    month: number,
+    year: number,
+    videosPerDay: number
+  ): Promise<string[]> {
+    if (month < 1 || month > 12) {
+      throw new Error('Mês inválido. Use de 1 a 12.');
+    }
+
+    const createdDirs: string[] = [];
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    // Pega lista base de vídeos e embaralha
+    const allVideos = fs
+      .readdirSync(this.slingshotPath)
+      .filter((f) => /\.(mp4|mov|mkv|avi)$/i.test(f));
+
+    if (allVideos.length === 0) {
+      throw new Error('Nenhum vídeo encontrado na pasta slingshot.');
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dd = String(day).padStart(2, '0');
+      const MM = String(month).padStart(2, '0');
+      const yy = String(year).slice(-2);
+
+      const dirName = `slingshot-${dd}-${MM}-${yy}`;
+      const dirPath = path.join(this.basePath, dirName);
+
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+        createdDirs.push(dirPath);
+
+        // Cria subpastas com combinações diferentes por dia
+        const shuffled = this.shuffle([...allVideos]);
+        await this.fillWithVideos(dirPath, shuffled, videosPerDay);
+      }
+    }
+
+    return createdDirs;
+  }
+
+  /**
+   * Cria subpastas video_1, video_2, ..., preenchendo com vídeos
+   * até que cada pasta tenha >= 4 minutos de duração.
+   * Se os vídeos acabarem, reembaralha e continua.
+   */
+  private async fillWithVideos(baseDir: string, allVideos: string[], videosPerDay: number) {
+    let pool = [...allVideos]; // vídeos disponíveis no ciclo atual
+
+    for (let index = 1; index <= videosPerDay; index++) {
+      const videoDir = path.join(baseDir, `video_${index}`);
+      fs.mkdirSync(videoDir, { recursive: true });
+
+      let totalDuration = 0;
+
+      while (totalDuration < 240) {
+        if (pool.length === 0) {
+          // Reembaralha e recomeça
+          pool = this.shuffle([...allVideos]);
+        }
+
+        const video = pool.shift()!;
+        const source = path.join(this.slingshotPath, video);
+        const dest = path.join(videoDir, video);
+
+        fs.copyFileSync(source, dest);
+
+        const duration = await this.getVideoDuration(source);
+        totalDuration += duration;
+      }
+    }
+  }
+
+  /**
+   * Retorna duração do vídeo em segundos.
+   */
+  private getVideoDuration(filePath: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(filePath, (err, metadata) => {
+        if (err) return reject(err);
+        const duration = metadata.format.duration || 0;
+        resolve(Math.floor(duration));
+      });
+    });
+  }
+
+  /**
+   * Embaralha array (Fisher–Yates)
+   */
+  
 
   /**
    * Cria diretórios para todos os dias do mês/ano informado
