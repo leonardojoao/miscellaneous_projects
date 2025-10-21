@@ -51,6 +51,107 @@ export class VideoProcessingService {
     return segments;
   }
 
+  /**
+   * Gera cortes SEQUENCIAIS entre 5s e 7s de todos os vídeos fornecidos.
+   * - Os cortes são feitos em sequência, sem repetir trechos.
+   * - Cada vídeo é cortado do ponto em que o último corte terminou.
+   * - Evita cortes consecutivos do mesmo vídeo.
+   * - Mantém todos os segmentos organizados no diretório de saída.
+   */
+  async createSequentialSegmentsFromVideos(
+    videoPaths: string[],
+    outputDir: string,
+    resolution = '1080x1920',
+  ): Promise<string[]> {
+    const ffmpeg = (await import('fluent-ffmpeg')).default;
+    const ffmpegInstaller = (await import('@ffmpeg-installer/ffmpeg')).default;
+    ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+
+    const segments: string[] = [];
+    const videoDurations: Record<string, number> = {};
+
+    // 1️⃣ Obter a duração de cada vídeo
+    for (const video of videoPaths) {
+      try {
+        videoDurations[video] = await this.getVideoDuration(video);
+      } catch (err) {
+        console.warn(`⚠️ Erro ao obter duração de ${video}:`, err);
+        videoDurations[video] = 0;
+      }
+    }
+
+    // 2️⃣ Map para acompanhar o progresso de cada vídeo
+    const videoProgress = new Map<string, number>();
+    videoPaths.forEach(v => videoProgress.set(v, 0));
+
+    let lastVideo: string | null = null;
+    let index = 1;
+    let active = true;
+
+    // 3️⃣ Loop até que todos os vídeos estejam esgotados
+    while (active) {
+      active = false;
+
+      for (const currentVideo of videoPaths) {
+        // Evita repetir o mesmo vídeo consecutivamente
+        if (currentVideo === lastVideo) continue;
+
+        const start = videoProgress.get(currentVideo)!;
+        const duration = videoDurations[currentVideo];
+        const segmentDuration = Math.floor(Math.random() * (7 - 5 + 1)) + 5;
+
+        if (start + segmentDuration >= duration) continue; // chegou ao fim do vídeo
+
+        // 4️⃣ Criar arquivo de saída do corte
+        const output = path.join(
+          outputDir,
+          `segment-${String(index).padStart(3, '0')}-${path.basename(currentVideo, path.extname(currentVideo))}.mp4`
+        );
+
+        await this.cutVideoSegment(currentVideo, start, segmentDuration, output, resolution);
+        segments.push(output);
+
+        // Atualiza o progresso do vídeo
+        videoProgress.set(currentVideo, start + segmentDuration + 1);
+        lastVideo = currentVideo;
+        index++;
+        active = true;
+      }
+    }
+
+    console.log(`✅ Criados ${segments.length} cortes únicos (sequenciais, entre 5s e 7s).`);
+    return segments;
+  }
+
+  /**
+   * Recorta um segmento do vídeo usando ffmpeg.
+   */
+  private cutVideoSegment(
+    input: string,
+    start: number,
+    duration: number,
+    output: string,
+    resolution: string,
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const ffmpeg = require('fluent-ffmpeg');
+      ffmpeg(input)
+        .setStartTime(start)
+        .setDuration(duration)
+        .size(resolution)
+        .output(output)
+        .on('end', () => {
+          console.log(`✂️ Corte criado: ${path.basename(output)} (${start}s → ${start + duration}s)`);
+          resolve();
+        })
+        .on('error', (err: any) => {
+          console.error(`❌ Erro ao cortar ${path.basename(input)}:`, err);
+          reject(err);
+        })
+        .run();
+    });
+  }
+
   async concatenateSegments(segmentPaths: string[], outputPath: string) {
     const concatListPath = path.join(__dirname, '..', '..', 'concat.txt');
     fs.writeFileSync(concatListPath, segmentPaths.map(s => `file '${s}'`).join('\n'));
