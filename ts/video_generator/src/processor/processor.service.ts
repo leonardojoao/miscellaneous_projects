@@ -35,7 +35,7 @@ export class ProcessorService {
     onlyShortVideo = false,
     onlyLongVideo = false,
     mode = 'random', // 🔹 novo parâmetro opcional
-  }: ProcessOptions & { mode?: 'random' | 'sequential' } = {}) {
+  }: ProcessOptions & { mode?: 'random' | 'sequential' | 'continuous' } = {}) {
     const dateDirs = this.getDateDirs();
 
     for (const dateDir of dateDirs) {
@@ -62,6 +62,22 @@ export class ProcessorService {
         }
 
         // ======================================================
+        // 🔹 MODO SEQUENCIAL (cortes contínuos com áudio original)
+        // ======================================================
+        // else if (mode === 'continuous') {
+        //   console.log('⚙️ Usando modo CONTINUOUS (sem cortes, apenas concatenação do vídeo)');
+        //   const videos = this.getVideos(dirPath);
+
+        //   if (!videos.length) {
+        //     console.warn(`⚠️ Nenhum vídeo encontrado em ${dirPath}`);
+        //     continue;
+        //   }
+
+        //   await this.processSequentialVideosAndAudios(videos, dirPath, resolution);
+        //   continue; // 👉 evita executar a parte abaixo
+        // }
+
+        // ======================================================
         // 🔹 MODO ALEATÓRIO (fluxo atual com Shopee, áudios e legendas)
         // ======================================================
         let productName = await this.processShopeeIntegration(dirPath, productDir);
@@ -72,7 +88,18 @@ export class ProcessorService {
         const audios = await this.ensureAudiosExist(dirPath, productName, onlyShortVideo, onlyLongVideo);
         const videos = this.getVideos(dirPath);
 
-        await this.processVideosAndAudios(videos, audios, dirPath, resolution, subtitle);
+        if (mode === 'continuous') {
+          // await this.videoService.processSingleVideoWithAudio(videos[0], audios[0], dirPath);
+        } else {
+          await this.processVideosAndAudios(videos, audios, dirPath, resolution, subtitle);
+        }
+      }
+
+      if (mode === 'continuous') {
+        // 🔹 Após todos os produtos do dateDir
+        const dateDirPath = path.join(this.basePath, dateDir);
+        const mergedOutput = path.join(dateDirPath, `merged-${dateDir}.mp4`);
+        await this.videoService.concatenateFinalVideos(dateDirPath, mergedOutput);
       }
     }
   }
@@ -160,6 +187,8 @@ export class ProcessorService {
     const existingFinals = [
       path.join(dirPath, "video-audio_curto-final.mp4"),
       path.join(dirPath, "video-audio_longo-final-music.mp4"),
+      path.join(dirPath, "video-audio_curto-legendado.mp4"),
+      path.join(dirPath, "video-audio_curto-final-music.mp4"),
     ];
     const exists = existingFinals.some(f => fs.existsSync(f));
     if (exists) console.log("✅ Já existe vídeo final, pulando processamento...");

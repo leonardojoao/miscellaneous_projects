@@ -278,4 +278,211 @@ export class VideoProcessingService {
   cleanupSegments(paths: string[]) {
     paths.forEach(file => fs.existsSync(file) && fs.unlinkSync(file));
   }
+
+    /**
+   * Usa um único vídeo, repetindo-o em loop até preencher a duração total do áudio.
+   * - Se o vídeo for mais longo que o áudio, corta o vídeo.
+   * - Se o vídeo for mais curto, repete em loop até atingir o tempo do áudio.
+   * - Ao final, sincroniza o áudio e o vídeo e exporta o arquivo final.
+   */
+  async processSingleVideoWithAudio(
+    videoPath: string,
+    audioPath: string,
+    outputDir: string,
+    resolution = '1080x1920',
+  ): Promise<string> {
+    const videoName = path.basename(videoPath);
+    const audioName = path.basename(audioPath);
+    const finalOutput = path.join(outputDir, `final-${path.parse(audioName).name}.mp4`);
+
+    console.log(`🎬 Processando vídeo único com áudio:`);
+    console.log(`📹 ${videoName}`);
+    console.log(`🎵 ${audioName}`);
+
+    const videoDuration = await this.getVideoDuration(videoPath);
+    const audioDuration = await this.getAudioDuration(audioPath);
+
+    console.log(`⏱️ Duração do vídeo: ${videoDuration.toFixed(2)}s`);
+    console.log(`⏱️ Duração do áudio: ${audioDuration.toFixed(2)}s`);
+
+    // 🔹 Ajusta o vídeo conforme a duração do áudio
+    let processedVideo = videoPath;
+
+    if (videoDuration < audioDuration) {
+      // 🔁 Repetir o vídeo até completar o tempo do áudio
+      console.log(`🔁 Repetindo vídeo até ${audioDuration.toFixed(2)}s...`);
+      const loopedVideo = path.join(outputDir, `looped-${path.basename(videoPath)}`);
+      await this.loopVideoUntilDuration(videoPath, loopedVideo, audioDuration, resolution);
+      processedVideo = loopedVideo;
+    } else if (videoDuration > audioDuration) {
+      // ✂️ Cortar vídeo se for maior
+      console.log(`✂️ Cortando vídeo para ${audioDuration.toFixed(2)}s...`);
+      const trimmedVideo = path.join(outputDir, `trimmed-${path.basename(videoPath)}`);
+      await this.trimVideoToDuration(videoPath, trimmedVideo, audioDuration, resolution);
+      processedVideo = trimmedVideo;
+    }
+
+    // 🔊 Mescla áudio e vídeo
+    await this.mergeAudioWithVideoV2(processedVideo, audioPath, finalOutput);
+
+    // 🔥 Remove intermediários, se criados
+    if (processedVideo !== videoPath && fs.existsSync(processedVideo)) {
+      fs.unlinkSync(processedVideo);
+    }
+
+    console.log(`✅ Vídeo final criado: ${finalOutput}`);
+    return finalOutput;
+  }
+
+  /**
+   * 🔁 Repete o vídeo até atingir uma duração alvo (em segundos)
+   */
+
+  async loopVideoUntilDuration(
+    input: string,
+    output: string,
+    targetDuration: number,
+    resolution = '1080x1920',
+  ): Promise<void> {
+    const videoDuration = await this.getVideoDuration(input);
+    const loops = Math.ceil(targetDuration / videoDuration);
+
+    const listFile = path.join(path.dirname(output), 'concat_list.txt');
+    const content = Array(loops).fill(`file '${input}'`).join('\n');
+    fs.writeFileSync(listFile, content);
+
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg()
+        .input(listFile)
+        .inputOptions(['-f concat', '-safe 0'])
+        .videoFilters(`scale=${resolution}`)
+        .outputOptions([
+          '-c:v libx264', // ✅ reencoda, necessário por causa do scale
+          '-preset ultrafast',
+          '-c:a aac',
+        ])
+        .save(output)
+        .on('end', () => resolve())
+        .on('error', reject);
+    });
+
+    fs.unlinkSync(listFile);
+  }
+
+
+  /**
+   * ✂️ Corta o vídeo até atingir uma duração exata
+   */
+  async trimVideoToDuration(
+    input: string,
+    output: string,
+    targetDuration: number,
+    resolution = '1080x1920',
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      ffmpeg(input)
+        .setStartTime(0)
+        .setDuration(targetDuration)
+        .videoFilters(`scale=${resolution}`)
+        .outputOptions(['-c:v libx264', '-c:a copy'])
+        .save(output)
+        .on('end', () => resolve())
+        .on('error', reject);
+    });
+  }
+
+  async mergeAudioWithVideoV2(
+    videoPath: string,
+    audioPath: string,
+    outputPath: string,
+    targetDuration?: number
+  ) {
+    return new Promise<void>((resolve, reject) => {
+      const extendedAudio = path.join(path.dirname(audioPath), `extended-${Date.now()}.mp3`);
+
+      const finalizeMerge = (audioToUse: string) => {
+        ffmpeg()
+          .input(videoPath)
+          .input(audioToUse)
+          // remove áudio original e aplica o novo
+          .outputOptions([
+            '-map 0:v:0', // pega apenas o vídeo do primeiro input
+            '-map 1:a:0', // pega apenas o áudio do segundo input
+            '-c:v libx264', // reencoda para aplicar filtros
+            '-preset ultrafast',
+            '-c:a aac', // converte áudio para AAC
+            '-shortest', // termina no menor stream (vídeo ou áudio)
+            '-pix_fmt yuv420p' // garante compatibilidade ampla
+          ])
+          .videoFilters('scale=1080x1920') // redimensiona para 1080x1920
+          .on('end', () => {
+            if (fs.existsSync(extendedAudio)) fs.unlinkSync(extendedAudio);
+            resolve();
+          })
+          .on('error', (err) => reject(err))
+          .save(outputPath);
+      };
+
+      // 🔊 Se precisar estender o áudio até o targetDuration
+      if (targetDuration) {
+        spawn('ffmpeg', [
+          '-y',
+          '-i', audioPath,
+          '-af', `apad=pad_dur=${targetDuration}`,
+          '-t', `${targetDuration}`,
+          extendedAudio
+        ]).on('close', (code) => {
+          if (code !== 0) return reject(new Error("Erro ao estender áudio"));
+          finalizeMerge(extendedAudio);
+        });
+      } else {
+        finalizeMerge(audioPath);
+      }
+    });
+  }
+
+  async concatenateFinalVideos(dateDirPath: string, outputPath: string) {
+    const ffmpeg = (await import('fluent-ffmpeg')).default;
+    const fs = await import('fs');
+    const path = await import('path');
+
+    // Busca todos os vídeos final-audio_curto.mp4 dentro dos produtos
+    const productDirs = fs.readdirSync(dateDirPath).filter((f) =>
+      fs.statSync(path.join(dateDirPath, f)).isDirectory()
+    );
+
+    const finalVideos = productDirs
+      .map((dir) => path.join(dateDirPath, dir, 'final-audio_curto.mp4'))
+      .filter((file) => fs.existsSync(file));
+
+    if (!finalVideos.length) {
+      console.warn(`⚠️ Nenhum vídeo final encontrado em ${dateDirPath}`);
+      return;
+    }
+
+    // Cria lista temporária para concatenação
+    const listFile = path.join(dateDirPath, 'videos.txt');
+    fs.writeFileSync(listFile, finalVideos.map((v) => `file '${v}'`).join('\n'));
+
+    console.log(`🎬 Concatenando ${finalVideos.length} vídeos em ${outputPath}`);
+
+    return new Promise<void>((resolve, reject) => {
+      ffmpeg()
+        .input(listFile)
+        .inputOptions(['-f concat', '-safe 0'])
+        .outputOptions(['-c copy'])
+        .save(outputPath)
+        .on('end', () => {
+          fs.unlinkSync(listFile);
+          console.log(`✅ Vídeo final criado: ${outputPath}`);
+          resolve();
+        })
+        .on('error', (err) => {
+          fs.unlinkSync(listFile);
+          reject(err);
+        });
+    });
+  }
+
+
 }
