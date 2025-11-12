@@ -6,195 +6,163 @@ import { YouTubeUtils } from './youtube/youtube-utils';
 import { ShopeeAffiliateService } from './shopee/shopee.service';
 import { AuthService } from './auth/auth.service';
 
-import * as readline from 'readline';
+import * as readline from 'readline/promises';
 import * as dotenv from 'dotenv';
 
-async function bootstrap() {
-  dotenv.config(); // carrega o .env
+dotenv.config();
 
+async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   await app.listen(3000);
 
-  const processorService = app.get(ProcessorService);
   const dirService = app.get(DirectoryService);
+  const processorService = app.get(ProcessorService);
   const youtubeUtils = app.get(YouTubeUtils);
   const shopeeService = app.get(ShopeeAffiliateService);
-  const authService = app.get(AuthService); // pega o serviço de autenticação
+  const authService = app.get(AuthService);
 
-  await shopeeService.init(); // 🔑 força inicialização aqui
+  await shopeeService.init();
 
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-  async function showMenu() {
-    console.log('\n📋 Menu Principal');
+  const ask = async (question: string) => rl.question(`${question.trim()} `);
 
-    console.log('\n⚙️ Configurações');
+  const askMonthYearCount = async () => {
+    const month = parseInt(await ask('👉 Mês (1-12):'), 10);
+    const year = parseInt(await ask('👉 Ano (ex: 2025):'), 10);
+    const count = parseInt(await ask('👉 Quantidade de produtos:'), 10);
+
+    if ([month, year, count].some(isNaN)) throw new Error('Entradas inválidas.');
+    if (count < 1) throw new Error('A quantidade deve ser pelo menos 1.');
+
+    return { month, year, count };
+  };
+
+  async function handleAuthFlow() {
+    console.log('\n🔑 Iniciando autenticação Google/YouTube...');
+    const url = authService.getAuthUrl();
+    console.log('\n1️⃣ Abra esta URL no navegador e autorize sua conta:');
+    console.log(url);
+
+    const code = await ask('\n2️⃣ Cole o código de autorização aqui:');
+    try {
+      const tokens = await authService.getTokens(code.trim());
+      console.log('\n🎟️ Tokens recebidos:', tokens);
+
+      if (tokens.refresh_token) {
+        console.log('\n💾 Adicione ao seu .env:');
+        console.log(`YT_REFRESH_TOKEN=${tokens.refresh_token}`);
+      } else {
+        console.warn('\n⚠️ Nenhum refresh token retornado. Use "prompt: consent" na URL.');
+      }
+    } catch (err: any) {
+      console.error('❌ Erro ao autenticar:', err.message);
+    }
+  }
+
+  async function handleCreateDirectories(useVideoVariant = false) {
+    try {
+      const { month, year, count } = await askMonthYearCount();
+      const dirs = useVideoVariant
+        ? dirService.createVideoDirectoriesForMonthAndYear(month, year, count)
+        : dirService.createDirectoriesForMonthAndYear(month, year, count);
+
+      console.log('📂 Diretórios criados:', dirs);
+    } catch (err: any) {
+      console.error('❌ Erro ao criar diretórios:', err.message);
+    }
+  }
+
+  async function mainMenu(): Promise<void> {
+    console.log('\n⚙️  Configurações');
     console.log('1 - Autenticar Google/YouTube');
-    console.log('2 - Criar diretórios por mês/ano');
+    console.log('2 - Criar diretórios (produtos)');
+    console.log('3 - Criar diretórios (vídeos)');
 
     console.log('\n🔗 Afiliados');
-    console.log('3 - Validar links da Shopee');
+    console.log('4 - Validar links da Shopee');
 
     console.log('\n🎬 Processamento de Produtos');
-    console.log('4 - Processar sem legendas');
-    console.log('5 - Processar com legendas (todos)');
-    console.log('6 - Processar com legendas (apenas Short Videos 9:16) + upload YouTube');
-    console.log('7 - Processar com legendas (apenas video longo) + upload YouTube');
+    console.log('5 - Processar sem legendas');
+    console.log('6 - Processar com legendas (todos)');
+    console.log('7 - Processar Shorts + upload YouTube');
+    console.log('8 - Processar vídeos longos + upload YouTube');
 
     console.log('\n🎬 Processamento de SlingShot');
-    console.log('8 - Processar com legendas (apenas video longo) + upload YouTube');
-    console.log('9 - Enviar todos os vídeos para o YouTube');
-    console.log('12 - Criar diretórios por mês/ano');
-    
+    console.log('9 - Processar sequencial + upload YouTube');
+
     console.log('\n📤 Publicação');
-    console.log('10 - Enviar todos os vídeos para o YouTube');
+    console.log('10 - Upload sequencial YouTube');
+    console.log('11 - Upload todos os vídeos YouTube');
 
-    console.log('0 - Sair');
+    console.log('\n0 - Sair');
+    console.log('='.repeat(50));
 
-    rl.question('Digite a opção: ', async (answer) => {
-      switch (answer) {
+    const choice = await ask('Digite a opção:');
+
+    try {
+      switch (choice) {
         case '1':
-          // 🔑 Fluxo de autenticação Google/YouTube
-          const url = authService.getAuthUrl();
-          console.log('\n1️⃣ Abra esta URL no navegador e autorize a conta:');
-          console.log(url);
-
-          rl.question('\n2️⃣ Cole o código de autorização aqui: ', async (code) => {
-            try {
-              const tokens = await authService.getTokens(code.trim());
-              console.log('\n🎟️ Tokens recebidos:');
-              console.log(tokens);
-
-              if (tokens.refresh_token) {
-                console.log('\n💾 Use este refresh token no seu .env:');
-                console.log(`YT_REFRESH_TOKEN=${tokens.refresh_token}`);
-              } else {
-                console.log('\n⚠️ Nenhum refresh token retornado. Tente adicionar "prompt: consent" no generateAuthUrl.');
-              }
-            } catch (err) {
-              console.error('❌ Erro ao obter tokens:', err.message);
-            } finally {
-              showMenu();
-            }
-          });
-          return;
+          await handleAuthFlow();
+          break;
         case '2':
-          rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
-            rl.question('👉 Digite o ano (ex: 2025): ', (yearInput) => {
-              rl.question('👉 Digite a quantidade de produtos: ', (countInput) => {
-                try {
-                  const month = parseInt(monthInput, 10);
-                  const year = parseInt(yearInput, 10);
-                  const count = parseInt(countInput, 10);
-
-                  if (isNaN(month) || isNaN(year) || isNaN(count)) {
-                    throw new Error('Entrada inválida. Use números válidos.');
-                  }
-
-                  if (count < 1) {
-                    throw new Error('A quantidade de produtos deve ser pelo menos 1.');
-                  }
-
-                  // cria os diretórios e copia os produtos
-  
-                  const dirs = dirService.createDirectoriesForMonthAndYear(
-                    month,
-                    year,
-                    count,
-                  );
-  
-                  console.log('📂 Diretórios criados:', dirs);
-                } catch (err) {
-                  console.error('❌ Erro:', err.message);
-                }
-  
-                // volta para o menu
-                showMenu();
-              });
-            });
-          });
-          return; // evita cair no showMenu duplicado
+          await handleCreateDirectories();
+          break;
         case '3':
-          await processorService.validateAllLinks();
+          await handleCreateDirectories(true);
           break;
         case '4':
-          await processorService.processAllProducts();
+          await processorService.validateAllLinks();
           break;
         case '5':
-          await processorService.processAllProducts({ subtitle: true });
+          await processorService.processAllProducts();
           break;
         case '6':
+          await processorService.processAllProducts({ subtitle: true });
+          break;
+        case '7':
           await processorService.processAllProducts({ subtitle: true, onlyShortVideo: true });
           await youtubeUtils.uploadAllVideos();
           break;
-        case '7':
+        case '8':
           await processorService.processAllProducts({ subtitle: true, onlyLongVideo: true });
           await youtubeUtils.uploadAllVideos();
           break;
-        case '8':
+        case '9':
           await processorService.processAllProducts({ mode: 'sequential' });
           await youtubeUtils.uploadAllVideos({ mode: 'sequential' });
           break;
-        case '9':
-          console.log('⏳ Enviando todos os vídeos para o YouTube...');
+        case '10':
+          console.log('⏳ Upload sequencial...');
           await youtubeUtils.uploadAllVideos({ mode: 'sequential' });
           break;
-        case '12':
-          rl.question('👉 Digite o mês (1-12): ', (monthInput) => {
-            rl.question('👉 Digite o ano (ex: 2025): ', (yearInput) => {
-              rl.question('👉 Digite a quantidade de produtos: ', (countInput) => {
-                try {
-                  const month = parseInt(monthInput, 10);
-                  const year = parseInt(yearInput, 10);
-                  const count = parseInt(countInput, 10);
-
-                  if (isNaN(month) || isNaN(year) || isNaN(count)) {
-                    throw new Error('Entrada inválida. Use números válidos.');
-                  }
-
-                  if (count < 1) {
-                    throw new Error('A quantidade de produtos deve ser pelo menos 1.');
-                  }
-
-                  // cria os diretórios e copia os produtos
-  
-                  const dirs = dirService.createVideoDirectoriesForMonthAndYear(
-                    month,
-                    year,
-                    count,
-                  );
-  
-                  console.log('📂 Diretórios criados:', dirs);
-                } catch (err) {
-                  console.error('❌ Erro:', err.message);
-                }
-  
-                // volta para o menu
-                showMenu();
-              });
-            });
-          });
-          return; // evita cair no showMenu duplicado
-        case '10':
+        case '11':
           await youtubeUtils.uploadAllVideos();
           break;
+        case '12':
+          await processorService.processAllProducts({ subtitle: true, onlyShortVideo: true, mode: 'continuous' });
         case '0':
-          console.log('👋 Saindo...');
-          rl.close();
+          console.log('👋 Encerrando aplicação...');
           await app.close();
-          return;
+          rl.close();
+          process.exit(0);
         default:
-          console.log('❌ Opção inválida');
+          console.log('❌ Opção inválida.');
       }
+    } catch (err: any) {
+      console.error('❌ Erro na execução da opção:', err.message);
+    }
 
-      showMenu(); // mostra o menu novamente após a ação
-    });
+    await mainMenu(); // loop do menu
   }
 
-  showMenu(); // inicia o menu
+  await mainMenu();
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('💥 Erro fatal ao iniciar aplicação:', err);
+  process.exit(1);
+});
